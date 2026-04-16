@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Journey Hub - Marriott International</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .card {
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #8B5CF6;
+      box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.1);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  
+  <!-- Header -->
+  <header class="gradient-bg text-white py-12 shadow-lg">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div id="brain-icon"></div>
+        <h1 class="text-4xl font-bold">AI Journey Hub</h1>
+      </div>
+      <p class="text-xl text-purple-100">Explore interactive AI training modules and resources</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-6 py-12">
+    
+    <div class="mb-10">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">Available Modules</h2>
+      <p class="text-gray-600">Select a module to explore the interactive content</p>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- Card 1: AI Journey Roadmap -->
+      <a href="ai-journey-roadmap.html" class="card bg-white rounded-xl p-6 shadow-md">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-purple-100 p-3 rounded-lg">
+            <div id="map-icon" class="text-purple-600"></div>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">AI Journey Roadmap</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Explore the comprehensive roadmap for AI implementation and learning paths.
+        </p>
+        <div class="flex items-center text-purple-600 font-semibold">
+          <span>View Module</span>
+          <div id="arrow-right-1" class="ml-2"></div>
+        </div>
+      </a>
+
+      <!-- Card 2: AI Journey Updated -->
+      <a href="ai-journey-updated.html" class="card bg-white rounded-xl p-6 shadow-md">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-pink-100 p-3 rounded-lg">
+            <div id="refresh-icon" class="text-pink-600"></div>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">AI Journey Updated</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          The latest updates and enhancements to the AI Journey program for Marriott.
+        </p>
+        <div class="flex items-center text-purple-600 font-semibold">
+          <span>View Module</span>
+          <div id="arrow-right-2" class="ml-2"></div>
+        </div>
+      </a>
+
+      <!-- Card 3: Training Lifecycle -->
+      <a href="Documents/training_lifecycle.html" class="card bg-white rounded-xl p-6 shadow-md">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-blue-100 p-3 rounded-lg">
+            <div id="cycle-icon" class="text-blue-600"></div>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">AI Lifecycle Flow</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Interactive flow chart demonstrating the AI training and implementation lifecycle.
+        </p>
+        <div class="flex items-center text-purple-600 font-semibold">
+          <span>View Module</span>
+          <div id="arrow-right-3" class="ml-2"></div>
+        </div>
+      </a>
+
+      <!-- Card 4: Training Part 3 -->
+      <a href="Documents/training-Pt3.html" class="card bg-white rounded-xl p-6 shadow-md">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-green-100 p-3 rounded-lg">
+            <div id="database-icon" class="text-green-600"></div>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">Data Processing Layer</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Deep dive into the data processing layer with interactive demonstrations.
+        </p>
+        <div class="flex items-center text-purple-600 font-semibold">
+          <span>View Module</span>
+          <div id="arrow-right-4" class="ml-2"></div>
+        </div>
+      </a>
+
+      <!-- Card 5: Training Part 1 -->
+      <a href="Downloads/training_pt1.html" class="card bg-white rounded-xl p-6 shadow-md">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-indigo-100 p-3 rounded-lg">
+            <div id="book-icon" class="text-indigo-600"></div>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">Training Part 1</h3>
+        </div>
+        <p class="text-gray-600 mb-4">
+          Foundation training module covering core AI concepts and principles.
+        </p>
+        <div class="flex items-center text-purple-600 font-semibold">
+          <span>View Module</span>
+          <div id="arrow-right-5" class="ml-2"></div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Info Section -->
+    <div class="mt-12 bg-white rounded-xl p-8 shadow-md border-l-4 border-purple-600">
+      <div class="flex items-start gap-4">
+        <div id="info-icon" class="text-purple-600 mt-1"></div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-800 mb-2">About This Hub</h3>
+          <p class="text-gray-600 leading-relaxed">
+            This hub provides access to interactive AI training modules and resources designed 
+            for Marriott International's AI Journey program. Each module offers engaging, 
+            hands-on experiences to help you understand and implement AI solutions effectively.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-gray-300 py-8 mt-16">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <p class="mb-2">&copy; 2026 Marriott International AI Journey</p>
+      <p class="text-sm text-gray-400">Interactive Training & Development Platform</p>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Create specific icons
+    document.getElementById('brain-icon').innerHTML = lucide.icons['brain'].toSvg({ size: 40 });
+    document.getElementById('map-icon').innerHTML = lucide.icons['map'].toSvg({ size: 24 });
+    document.getElementById('refresh-icon').innerHTML = lucide.icons['refresh-cw'].toSvg({ size: 24 });
+    document.getElementById('cycle-icon').innerHTML = lucide.icons['git-branch'].toSvg({ size: 24 });
+    document.getElementById('database-icon').innerHTML = lucide.icons['database'].toSvg({ size: 24 });
+    document.getElementById('book-icon').innerHTML = lucide.icons['book-open'].toSvg({ size: 24 });
+    document.getElementById('info-icon').innerHTML = lucide.icons['info'].toSvg({ size: 24 });
+    
+    // Arrow icons for each card
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById(`arrow-right-${i}`).innerHTML = lucide.icons['arrow-right'].toSvg({ size: 20 });
+    }
+  </script>
+
+</body>
+</html>
