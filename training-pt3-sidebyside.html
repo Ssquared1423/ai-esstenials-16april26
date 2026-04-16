@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Processing Layer Demo</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+html, body { height: 100%; margin: 0; font-size: 20px; }
+* { font-family: 'DM Sans', sans-serif; }
+.mono { font-family: 'Space Mono', monospace; font-weight: 500; }
+
+.card-glow { transition: all 0.4s ease; }
+.card-glow:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+
+@keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+.fade-up { animation: fadeUp 0.6s ease forwards; opacity: 0; }
+.fade-up:nth-child(1) { animation-delay: 0.1s; }
+.fade-up:nth-child(2) { animation-delay: 0.2s; }
+.fade-up:nth-child(3) { animation-delay: 0.3s; }
+.fade-up:nth-child(4) { animation-delay: 0.4s; }
+
+.toggle-btn { transition: all 0.3s ease; }
+.toggle-btn.active { transform: scale(1.05); }
+
+.raw-data, .processed-data { transition: opacity 0.4s ease, transform 0.4s ease; }
+.data-hidden { opacity: 0; transform: scale(0.95); position: absolute; pointer-events: none; }
+.data-visible { opacity: 1; transform: scale(1); position: relative; }
+
+.pipeline-step { transition: all 0.3s ease; cursor: pointer; }
+.pipeline-step:hover { transform: scale(1.05); }
+.pipeline-step.lit { filter: brightness(1.1); box-shadow: 0 0 20px rgba(190,49,68,0.4); }
+
+.accuracy-bar { transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+.scroll-wrap { overflow-y: auto; overflow-x: hidden; height: 100%; }
+.scroll-wrap::-webkit-scrollbar { width: 6px; }
+.scroll-wrap::-webkit-scrollbar-thumb { background: #c4b5a0; border-radius: 3px; }
+</style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="scroll-wrap w-full" style="background: #1a1714;">
+   <header class="relative overflow-hidden" style="background: linear-gradient(135deg, #1a1714 0%, #2d2520 50%, #1a1714 100%);">
+    <div class="absolute inset-0" style="background: radial-gradient(ellipse at 30% 20%, rgba(190,49,68,0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(196,181,160,0.08) 0%, transparent 50%);"></div>
+    <div class="relative max-w-6xl mx-auto px-6 py-20 text-center">
+     <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 mono text-sm tracking-widest" style="background: rgba(190,49,68,0.15); color: #be3144; border: 1px solid rgba(190,49,68,0.3);"><i data-lucide="layers" style="width:18px;height:18px;"></i> MARRIOTT INTERNATIONAL
+     </div>
+     <h1 id="main-title" class="text-6xl md:text-8xl font-bold" style="color: #f5f0e8; line-height: 1.1; font-weight: 700;">Why the Data Processing Layer<br><span style="color:#be3144;">Changes Everything</span></h1>
+     <div class="mt-12 flex justify-center gap-3 flex-wrap"><button onclick="scrollToSection('demos')" class="px-10 py-5 rounded-lg font-bold text-xl flex items-center gap-2 toggle-btn" style="background:#be3144; color:#f5f0e8;"> <i data-lucide="play" style="width:24px;height:24px;"></i> Explore Live Demos </button> <button onclick="scrollToSection('pipeline')" class="px-10 py-5 rounded-lg font-bold text-xl flex items-center gap-2 toggle-btn" style="background:rgba(196,181,160,0.15); color:#c4b5a0; border:1px solid rgba(196,181,160,0.2);"> <i data-lucide="git-branch" style="width:24px;height:24px;"></i> See the Pipeline </button>
+     </div>
+    </div>
+   </header>
+   <section id="pipeline" class="max-w-full mx-auto px-8 py-16">
+    <h2 class="text-4xl md:text-5xl font-bold mb-2 text-center" style="color:#f5f0e8;">The Processing Pipeline</h2>
+    <p class="text-center mb-10 text-xl font-medium" style="color:#c4b5a0;">Click each step to see what happens at that stage</p>
+    
+    <div class="relative">
+     <div class="hidden md:flex absolute top-12 left-0 right-0 items-center justify-between px-12 pointer-events-none z-0">
+      <div class="flex-1 h-0.5 mx-4" style="background: linear-gradient(to right, #be3144 0%, transparent 100%);"></div>
+      <div class="flex-1 h-0.5 mx-4" style="background: linear-gradient(to right, transparent 0%, #be3144 50%, transparent 100%);"></div>
+      <div class="flex-1 h-0.5 mx-4" style="background: linear-gradient(to right, transparent 0%, #be3144 50%, transparent 100%);"></div>
+      <div class="flex-1 h-0.5 mx-4" style="background: linear-gradient(to right, transparent 0%, #be3144 100%);"></div>
+     </div>
+     
+     <div class="grid grid-cols-2 md:grid-cols-5 gap-3 relative z-10" id="pipeline-steps">
+      <div class="pipeline-step rounded-xl p-4 text-center" style="background:#2d2520; border:1px solid #3d352e;" onclick="showPipelineDetail(0)">
+       <div class="w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(190,49,68,0.3) 0%, rgba(190,49,68,0.1) 100%);">
+        <i data-lucide="database" style="width:28px;height:28px;color:#be3144;stroke-width:2.5;"></i>
+       </div>
+       <div class="text-xl font-bold" style="color:#f5f0e8;">Ingestion</div>
+       <div class="text-base mt-1 mono" style="color:#7a6f63;">PMS, OTA, CRM</div>
+      </div>
+      
+      <div class="pipeline-step rounded-xl p-4 text-center" style="background:#2d2520; border:1px solid #3d352e;" onclick="showPipelineDetail(1)">
+       <div class="w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(190,49,68,0.3) 0%, rgba(190,49,68,0.1) 100%);">
+        <i data-lucide="sparkles" style="width:28px;height:28px;color:#be3144;stroke-width:2.5;"></i>
+       </div>
+       <div class="text-xl font-bold" style="color:#f5f0e8;">Cleaning</div>
+       <div class="text-base mt-1 mono" style="color:#7a6f63;">Nulls, Dupes</div>
+      </div>
+      
+      <div class="pipeline-step rounded-xl p-4 text-center" style="background:#2d2520; border:1px solid #3d352e;" onclick="showPipelineDetail(2)">
+       <div class="w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(190,49,68,0.3) 0%, rgba(190,49,68,0.1) 100%);">
+        <i data-lucide="repeat" style="width:28px;height:28px;color:#be3144;stroke-width:2.5;"></i>
+       </div>
+       <div class="text-xl font-bold" style="color:#f5f0e8;">Transform</div>
+       <div class="text-base mt-1 mono" style="color:#7a6f63;">Normalize</div>
+      </div>
+      
+      <div class="pipeline-step rounded-xl p-4 text-center" style="background:#2d2520; border:1px solid #3d352e;" onclick="showPipelineDetail(3)">
+       <div class="w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(190,49,68,0.3) 0%, rgba(190,49,68,0.1) 100%);">
+        <i data-lucide="zap" style="width:28px;height:28px;color:#be3144;stroke-width:2.5;"></i>
+       </div>
+       <div class="text-xl font-bold" style="color:#f5f0e8;">Enrich</div>
+       <div class="text-base mt-1 mono" style="color:#7a6f63;">Features</div>
+      </div>
+      
+      <div class="pipeline-step rounded-xl p-4 text-center col-span-2 md:col-span-1" style="background:#2d2520; border:1px solid #3d352e;" onclick="showPipelineDetail(4)">
+       <div class="w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, rgba(190,49,68,0.3) 0%, rgba(190,49,68,0.1) 100%);">
+        <i data-lucide="check-circle" style="width:28px;height:28px;color:#be3144;stroke-width:2.5;"></i>
+       </div>
+       <div class="text-xl font-bold" style="color:#f5f0e8;">Validate</div>
+       <div class="text-base mt-1 mono" style="color:#7a6f63;">Quality</div>
+      </div>
+     </div>
+    </div>
+    
+    <div id="pipeline-detail" class="mt-6 rounded-xl p-5 mono text-base" style="background:#2d2520; border:1px solid #3d352e; color:#c4b5a0; display:none; line-height: 1.7;"></div>
+   </section>
+   <section id="demos" class="max-w-full mx-auto px-8 pb-20">
+    <h2 class="text-4xl md:text-5xl font-bold mb-2 text-center" style="color:#f5f0e8;">Live Interactive Examples</h2>
+    <p class="text-center mb-12 text-xl font-medium" style="color:#c4b5a0;">Toggle between raw &amp; processed data to see the difference</p>
+    <div class="space-y-8">
+     <!-- Example 1: Sentiment Analysis with Impact Metric -->
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-up">
+      <!-- Data Example (2 columns) -->
+      <div class="lg:col-span-2 card-glow rounded-2xl overflow-hidden" style="background:#2d2520; border:1px solid #3d352e;">
+      <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-3" style="border-bottom:1px solid #3d352e;">
+       <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:rgba(190,49,68,0.2);">
+         <i data-lucide="message-circle" style="width:24px;height:24px;color:#be3144;"></i>
+        </div>
+        <div>
+         <h3 class="font-bold text-xl" style="color:#f5f0e8;">Guest Review Sentiment Analysis</h3>
+         <p class="text-lg" style="color:#7a6f63;">NLP model for Marriott Bonvoy reviews</p>
+        </div>
+       </div>
+       <div class="flex rounded-lg overflow-hidden" style="border:1px solid #3d352e;"><button class="toggle-btn active px-6 py-3 text-lg font-bold" style="background:#be3144; color:#f5f0e8;" onclick="toggleDemo(this, 'sentiment', 'raw')">Raw Data</button> <button class="toggle-btn px-6 py-3 text-lg font-bold" style="background:transparent; color:#7a6f63;" onclick="toggleDemo(this, 'sentiment', 'processed')">Processed</button>
+       </div>
+      </div>
+      <div class="p-5 relative" style="min-height:200px;">
+       <div id="sentiment-raw" class="data-visible">
+        <div class="mono text-lg space-y-2" style="color:#c4b5a0; line-height: 1.6;">
+         <div class="p-3 rounded-lg" style="background:#1a1714;"><span style="color:#7a6f63;">review_1:</span> "room was Ok i gues... wifi TERRIBLE!!! 😡 but the staff were amaaazing esp Maria at front desk 10/10 would reccomend"
+         </div>
+         <div class="p-3 rounded-lg" style="background:#1a1714;"><span style="color:#7a6f63;">review_2:</span> "N/A N/A N/A great pool tho lol 😂😂 stayed at JW marriott cancun rm 1204"
+         </div>
+         <div class="p-3 rounded-lg" style="background:#1a1714;"><span style="color:#7a6f63;">review_3:</span> "WORST EXPERIENCE EVER!!!!! well actually the spa was nice. 3 stars? maybe 2. idk. bonvoy plat member btw"
+         </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-lg font-medium" style="color:#be3144;"><i data-lucide="alert-triangle" style="width:20px;height:20px;"></i> Typos, mixed signals, emojis, no structure — model accuracy: <strong>47%</strong>
+        </div>
+       </div>
+       <div id="sentiment-processed" class="data-hidden">
+        <div class="space-y-2">
+         <div class="p-3 rounded-lg flex items-center justify-between" style="background:#1a1714;">
+          <div class="mono text-lg" style="color:#c4b5a0; line-height: 1.6;"><span style="color:#7a6f63;">review_1:</span> { property: "Marriott Downtown", aspects: { room: <span style="color:#c4b5a0;">0.5</span>, wifi: <span style="color:#be3144;">-0.9</span>, staff: <span style="color:#4ade80;">0.95</span> } }
+          </div>
+         </div>
+         <div class="p-3 rounded-lg flex items-center justify-between" style="background:#1a1714;">
+          <div class="mono text-base" style="color:#c4b5a0; line-height: 1.6;"><span style="color:#7a6f63;">review_2:</span> { property: "JW Marriott Cancún", aspects: { pool: <span style="color:#4ade80;">0.85</span> }, room: 1204, null_fields_removed: 3 }
+          </div>
+         </div>
+         <div class="p-3 rounded-lg flex items-center justify-between" style="background:#1a1714;">
+          <div class="mono text-lg" style="color:#c4b5a0; line-height: 1.6;"><span style="color:#7a6f63;">review_3:</span> { sentiment: <span style="color:#be3144;">-0.6</span>, aspects: { spa: <span style="color:#4ade80;">0.7</span> }, loyalty_tier: "platinum", rating: 2.5 }
+          </div>
+         </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-lg font-medium" style="color:#4ade80;"><i data-lucide="check-circle" style="width:20px;height:20px;"></i> Structured, aspect-level sentiment, enriched with loyalty data — model accuracy: <strong>91%</strong>
+        </div>
+       </div>
+      </div>
+     </div>
+      <!-- Impact Metric (1 column) -->
+      <div class="flex items-stretch">
+       <div class="w-full text-center p-8 rounded-xl card-glow flex flex-col justify-center" style="background:rgba(190,49,68,0.08); border:2px solid rgba(190,49,68,0.3);">
+        <div class="text-6xl font-bold mb-2" style="color:#be3144;">47%</div>
+        <div class="text-2xl mb-1" style="color:#c4b5a0;">→ 91%</div>
+        <div class="text-xl font-bold mt-3 mb-4" style="color:#f5f0e8;">Sentiment Accuracy</div>
+        <div class="w-full rounded-full" style="height:8px; background:#1a1714;">
+         <div class="accuracy-bar rounded-full" style="height:8px; background:#be3144; width:0%;" data-target="91"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <!-- Example 2: Dynamic Pricing with Impact Metric -->
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-up">
+      <!-- Data Example (2 columns) -->
+      <div class="lg:col-span-2 card-glow rounded-2xl overflow-hidden" style="background:#2d2520; border:1px solid #3d352e;">
+      <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-3" style="border-bottom:1px solid #3d352e;">
+       <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:rgba(190,49,68,0.2);">
+         <i data-lucide="trending-up" style="width:24px;height:24px;color:#be3144;"></i>
+        </div>
+        <div>
+         <h3 class="font-bold text-xl" style="color:#f5f0e8;">Revenue: Dynamic Room Pricing</h3>
+         <p class="text-lg" style="color:#7a6f63;">ML model for rate optimization across 8,000+ properties</p>
+        </div>
+       </div>
+       <div class="flex rounded-lg overflow-hidden" style="border:1px solid #3d352e;"><button class="toggle-btn active px-6 py-3 text-lg font-bold" style="background:#be3144; color:#f5f0e8;" onclick="toggleDemo(this, 'pricing', 'raw')">Raw Data</button> <button class="toggle-btn px-6 py-3 text-lg font-bold" style="background:transparent; color:#7a6f63;" onclick="toggleDemo(this, 'pricing', 'processed')">Processed</button>
+       </div>
+      </div>
+      <div class="p-5 relative" style="min-height:220px;">
+       <div id="pricing-raw" class="data-visible">
+        <div class="overflow-x-auto">
+         <table class="w-full mono text-lg" style="color:#c4b5a0;">
+          <thead>
+           <tr style="border-bottom:1px solid #3d352e;">
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">date</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">property</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">rate</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">occupancy</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">event</th>
+           </tr>
+          </thead>
+          <tbody>
+           <tr>
+            <td class="py-1.5 px-2">2024-03-15</td>
+            <td class="px-2">Ritz Carlton NYC</td>
+            <td class="px-2">$899</td>
+            <td class="px-2">87%</td>
+            <td class="px-2">—</td>
+           </tr>
+           <tr>
+            <td class="py-1.5 px-2" style="color:#be3144;">03/16/2024</td>
+            <td class="px-2">ritz carlton new york</td>
+            <td class="px-2" style="color:#be3144;">eight ninety nine</td>
+            <td class="px-2">NULL</td>
+            <td class="px-2">st patricks day</td>
+           </tr>
+           <tr>
+            <td class="py-1.5 px-2">2024-03-15</td>
+            <td class="px-2">Ritz Carlton NYC</td>
+            <td class="px-2">$899</td>
+            <td class="px-2">87%</td>
+            <td class="px-2">—</td>
+           </tr>
+           <tr>
+            <td class="py-1.5 px-2" style="color:#be3144;">15-Mar-24</td>
+            <td class="px-2">W Hotel Times Sq</td>
+            <td class="px-2">$-50</td>
+            <td class="px-2">112%</td>
+            <td class="px-2">—</td>
+           </tr>
+          </tbody>
+         </table>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2"><span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(190,49,68,0.15); color:#be3144;">3 date formats</span> <span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(190,49,68,0.15); color:#be3144;">duplicate row</span> <span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(190,49,68,0.15); color:#be3144;">text in numeric field</span> <span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(190,49,68,0.15); color:#be3144;">impossible values</span>
+        </div>
+       </div>
+       <div id="pricing-processed" class="data-hidden">
+        <div class="overflow-x-auto">
+         <table class="w-full mono text-lg" style="color:#c4b5a0;">
+          <thead>
+           <tr style="border-bottom:1px solid #3d352e;">
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">date</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">property_id</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">rate_usd</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">occ_%</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">event_flag</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">dow</th>
+            <th class="text-left py-2 px-2 font-bold" style="color:#7a6f63;">yoy_Δ</th>
+           </tr>
+          </thead>
+          <tbody>
+           <tr>
+            <td class="py-1.5 px-2">2024-03-15</td>
+            <td class="px-2">RC-NYC-001</td>
+            <td class="px-2">899.00</td>
+            <td class="px-2">0.87</td>
+            <td class="px-2">0</td>
+            <td class="px-2">Fri</td>
+            <td class="px-2" style="color:#4ade80;">+12%</td>
+           </tr>
+           <tr>
+            <td class="py-1.5 px-2">2024-03-16</td>
+            <td class="px-2">RC-NYC-001</td>
+            <td class="px-2">899.00</td>
+            <td class="px-2">0.91</td>
+            <td class="px-2">1</td>
+            <td class="px-2">Sat</td>
+            <td class="px-2" style="color:#4ade80;">+8%</td>
+           </tr>
+           <tr>
+            <td class="py-1.5 px-2">2024-03-15</td>
+            <td class="px-2">WH-NYC-042</td>
+            <td class="px-2">529.00</td>
+            <td class="px-2">0.94</td>
+            <td class="px-2">0</td>
+            <td class="px-2">Fri</td>
+            <td class="px-2" style="color:#4ade80;">+5%</td>
+           </tr>
+          </tbody>
+         </table>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2"><span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(74,222,128,0.1); color:#4ade80;">ISO dates</span> <span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(74,222,128,0.1); color:#4ade80;">deduped</span> <span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(74,222,128,0.1); color:#4ade80;">nulls imputed</span> <span class="px-3 py-1.5 rounded text-base mono" style="background:rgba(74,222,128,0.1); color:#4ade80;">+3 features</span>
+        </div>
+       </div>
+      </div>
+     </div>
+      <!-- Impact Metric (1 column) -->
+      <div class="flex items-stretch">
+       <div class="w-full text-center p-8 rounded-xl card-glow flex flex-col justify-center" style="background:rgba(190,49,68,0.08); border:2px solid rgba(190,49,68,0.3);">
+        <div class="text-6xl font-bold mb-2" style="color:#be3144;">+18%</div>
+        <div class="text-2xl mb-1" style="color:#c4b5a0;">RevPAR lift</div>
+        <div class="text-xl font-bold mt-3 mb-4" style="color:#f5f0e8;">Dynamic Pricing</div>
+        <div class="w-full rounded-full" style="height:8px; background:#1a1714;">
+         <div class="accuracy-bar rounded-full" style="height:8px; background:#be3144; width:0%;" data-target="78"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <!-- Example 3: Personalization with Impact Metric -->
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-up">
+      <!-- Data Example (2 columns) -->
+      <div class="lg:col-span-2 card-glow rounded-2xl overflow-hidden" style="background:#2d2520; border:1px solid #3d352e;">
+      <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-3" style="border-bottom:1px solid #3d352e;">
+       <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:rgba(190,49,68,0.2);">
+         <i data-lucide="user" style="width:24px;height:24px;color:#be3144;"></i>
+        </div>
+        <div>
+         <h3 class="font-bold text-xl" style="color:#f5f0e8;">Bonvoy Guest Personalization Engine</h3>
+         <p class="text-lg" style="color:#7a6f63;">Deep learning recommendation system</p>
+        </div>
+       </div>
+       <div class="flex rounded-lg overflow-hidden" style="border:1px solid #3d352e;"><button class="toggle-btn active px-6 py-3 text-lg font-bold" style="background:#be3144; color:#f5f0e8;" onclick="toggleDemo(this, 'personalization', 'raw')">Raw Data</button> <button class="toggle-btn px-6 py-3 text-lg font-bold" style="background:transparent; color:#7a6f63;" onclick="toggleDemo(this, 'personalization', 'processed')">Processed</button>
+       </div>
+      </div>
+      <div class="p-5 relative" style="min-height:200px;">
+       <div id="personalization-raw" class="data-visible">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+         <div class="p-3 rounded-lg" style="background:#1a1714;">
+          <div class="text-lg font-bold mb-2" style="color:#7a6f63;">
+           PMS System
+          </div>
+          <div class="mono text-lg space-y-1" style="color:#c4b5a0;">
+           <div>
+            guest: "J. Smith"
+           </div>
+           <div>
+            stays: 12
+           </div>
+           <div>
+            room_pref: <span style="color:#be3144;">NULL</span>
+           </div>
+          </div>
+         </div>
+         <div class="p-3 rounded-lg" style="background:#1a1714;">
+          <div class="text-lg font-bold mb-2" style="color:#7a6f63;">
+           Restaurant POS
+          </div>
+          <div class="mono text-lg space-y-1" style="color:#c4b5a0;">
+           <div>
+            name: "John S."
+           </div>
+           <div>
+            orders: "veg, gf bread, oat milk..."
+           </div>
+           <div>
+            allergy: <span style="color:#be3144;">unstandardized</span>
+           </div>
+          </div>
+         </div>
+         <div class="p-3 rounded-lg" style="background:#1a1714;">
+          <div class="text-lg font-bold mb-2" style="color:#7a6f63;">
+           Spa Booking
+          </div>
+          <div class="mono text-lg space-y-1" style="color:#c4b5a0;">
+           <div>
+            client: "Smith, John"
+           </div>
+           <div>
+            pref: "deep tissue, no scent"
+           </div>
+           <div>
+            loyalty: <span style="color:#be3144;">not linked</span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-lg font-medium" style="color:#be3144;"><i data-lucide="alert-triangle" style="width:20px;height:20px;"></i> 3 systems, 3 name formats, no unified guest ID — model thinks these are 3 different people
+        </div>
+       </div>
+       <div id="personalization-processed" class="data-hidden">
+        <div class="p-4 rounded-lg" style="background:#1a1714;">
+         <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold" style="background:rgba(190,49,68,0.3); color:#be3144;">
+           JS
+          </div>
+          <div>
+           <div class="text-xl font-bold" style="color:#f5f0e8;">
+            John Smith
+           </div>
+           <div class="mono text-lg" style="color:#7a6f63;">
+            bonvoy_id: MRW-8847291 · Titanium Elite · LTV: $48,200
+           </div>
+          </div>
+         </div>
+         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mono text-lg">
+          <div class="p-2 rounded" style="background:#2d2520;">
+           <div style="color:#7a6f63;">
+            stays
+           </div>
+           <div style="color:#f5f0e8;">
+            47 (12 props)
+           </div>
+          </div>
+          <div class="p-2 rounded" style="background:#2d2520;">
+           <div style="color:#7a6f63;">
+            dietary
+           </div>
+           <div style="color:#f5f0e8;">
+            vegetarian, GF
+           </div>
+          </div>
+          <div class="p-2 rounded" style="background:#2d2520;">
+           <div style="color:#7a6f63;">
+            room_pref
+           </div>
+           <div style="color:#f5f0e8;">
+            high floor, king
+           </div>
+          </div>
+          <div class="p-2 rounded" style="background:#2d2520;">
+           <div style="color:#7a6f63;">
+            spa_pref
+           </div>
+           <div style="color:#f5f0e8;">
+            deep tissue, unscented
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-lg font-medium" style="color:#4ade80;"><i data-lucide="check-circle" style="width:20px;height:20px;"></i> Entity resolution merged 3 profiles → 1 unified guest. Recommendation accuracy: <strong>94%</strong>
+        </div>
+       </div>
+      </div>
+     </div>
+      <!-- Impact Metric (1 column) -->
+      <div class="flex items-stretch">
+       <div class="w-full text-center p-8 rounded-xl card-glow flex flex-col justify-center" style="background:rgba(190,49,68,0.08); border:2px solid rgba(190,49,68,0.3);">
+        <div class="text-6xl font-bold mb-2" style="color:#be3144;">94%</div>
+        <div class="text-2xl mb-1" style="color:#c4b5a0;">recommendation hit rate</div>
+        <div class="text-xl font-bold mt-3 mb-4" style="color:#f5f0e8;">Personalization</div>
+        <div class="w-full rounded-full" style="height:8px; background:#1a1714;">
+         <div class="accuracy-bar rounded-full" style="height:8px; background:#be3144; width:0%;" data-target="94"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <!-- Example 4: Fraud Detection with Impact Metric -->
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-up">
+      <!-- Data Example (2 columns) -->
+      <div class="lg:col-span-2 card-glow rounded-2xl overflow-hidden" style="background:#2d2520; border:1px solid #3d352e;">
+      <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-3" style="border-bottom:1px solid #3d352e;">
+       <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:rgba(190,49,68,0.2);">
+         <i data-lucide="shield" style="width:24px;height:24px;color:#be3144;"></i>
+        </div>
+        <div>
+         <h3 class="font-bold text-xl" style="color:#f5f0e8;">Fraud &amp; Anomaly Detection</h3>
+         <p class="text-lg" style="color:#7a6f63;">Real-time transaction monitoring across properties</p>
+        </div>
+       </div>
+       <div class="flex rounded-lg overflow-hidden" style="border:1px solid #3d352e;"><button class="toggle-btn active px-6 py-3 text-lg font-bold" style="background:#be3144; color:#f5f0e8;" onclick="toggleDemo(this, 'anomaly', 'raw')">Raw Data</button> <button class="toggle-btn px-6 py-3 text-lg font-bold" style="background:transparent; color:#7a6f63;" onclick="toggleDemo(this, 'anomaly', 'processed')">Processed</button>
+       </div>
+      </div>
+      <div class="p-5 relative" style="min-height:180px;">
+       <div id="anomaly-raw" class="data-visible">
+        <div class="mono text-lg space-y-2" style="color:#c4b5a0; line-height: 1.6;">
+         <div class="p-3 rounded-lg" style="background:#1a1714;">
+          txn_1: { amount: "$12,500", type: "minibar", room: 403, time: "3:42 AM", property: "Sheraton LAX" }
+         </div>
+         <div class="p-3 rounded-lg" style="background:#1a1714;">
+          txn_2: { amount: "$0.01", type: "room_charge", room: 403, time: "3:43 AM", card: "****9012" }
+         </div>
+         <div class="p-3 rounded-lg" style="background:#1a1714;">
+          txn_3: { amount: "$8,900", type: "spa", room: 403, time: "3:44 AM", property: "sheraton los angeles" }
+         </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-lg font-medium" style="color:#be3144;">
+         <i data-lucide="alert-triangle" style="width:20px;height:20px;"></i> 
+         <span>No velocity features, no historical context, inconsistent property names — false positive rate: <strong>34%</strong></span>
+        </div>
+       </div>
+       <div id="anomaly-processed" class="data-hidden">
+        <div class="mono text-lg space-y-2" style="color:#c4b5a0; line-height: 1.6;">
+         <div class="p-3 rounded-lg flex items-center gap-3" style="background:#1a1714; border-left:3px solid #be3144;">
+          <div class="flex-1">
+           <div>
+            <span style="color:#be3144;">🚨 ALERT</span> 3 txns in 2min · $21,400.01 total · room_403 · SH-LAX-001
+           </div>
+           <div style="color:#7a6f63;">
+            velocity: 3x/2min (baseline: 0.2x/hr) · amount_zscore: 4.7 · time_anomaly: true
+           </div>
+          </div><span class="px-3 py-1.5 rounded text-lg font-bold" style="background:rgba(190,49,68,0.3); color:#be3144;">risk: 0.97</span>
+         </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-lg font-medium" style="color:#4ade80;"><i data-lucide="check-circle" style="width:20px;height:20px;"></i> Velocity features + z-scores + entity resolution — false positive rate: <strong>3%</strong>
+        </div>
+       </div>
+      </div>
+     </div>
+      <!-- Impact Metric (1 column) -->
+      <div class="flex items-stretch">
+       <div class="w-full text-center p-8 rounded-xl card-glow flex flex-col justify-center" style="background:rgba(190,49,68,0.08); border:2px solid rgba(190,49,68,0.3);">
+        <div class="text-6xl font-bold mb-2" style="color:#be3144;">-91%</div>
+        <div class="text-2xl mb-1" style="color:#c4b5a0;">false positives</div>
+        <div class="text-xl font-bold mt-3 mb-4" style="color:#f5f0e8;">Fraud Detection</div>
+        <div class="w-full rounded-full" style="height:8px; background:#1a1714;">
+         <div class="accuracy-bar rounded-full" style="height:8px; background:#be3144; width:0%;" data-target="97"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+   <footer class="text-center py-8 px-6" style="border-top:1px solid #3d352e;">
+    <p class="mono text-base" style="color:#7a6f63;">Data Processing Layer · Marriott International · AI/ML/DL Demo</p>
+   </footer>
+  </div>
+  <script>
+// Check if SDK exists, if not create a stub
+if (typeof window.elementSdk === 'undefined') {
+  window.elementSdk = {
+    init: function() {},
+    setConfig: function() {}
+  };
+}
+
+const defaultConfig = {
+  main_title: 'Why the Data Processing Layer<br><span style="color:#be3144;">Changes Everything</span>',
+  subtitle: 'Garbage in, garbage out. See how raw hotel data transforms into AI-ready gold.',
+  background_color: '#1a1714',
+  surface_color: '#2d2520',
+  text_color: '#f5f0e8',
+  accent_color: '#be3144',
+  muted_color: '#c4b5a0',
+  font_family: 'DM Sans',
+  font_size: 16
+};
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    const c = { ...defaultConfig, ...config };
+    document.getElementById('main-title').innerHTML = c.main_title;
+    document.getElementById('subtitle').textContent = c.subtitle;
+    document.getElementById('app').style.background = c.background_color;
+    document.querySelectorAll('.card-glow, .pipeline-step').forEach(el => {
+      el.style.background = c.surface_color;
+    });
+    document.querySelectorAll('h1,h2,h3,.font-bold').forEach(el => {
+      if (el.closest('#pipeline-detail')) return;
+      el.style.color = c.text_color;
+    });
+    document.body.style.fontFamily = `${c.font_family}, DM Sans, sans-serif`;
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.accent_color || defaultConfig.accent_color, set: v => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
+      { get: () => config.muted_color || defaultConfig.muted_color, set: v => { config.muted_color = v; window.elementSdk.setConfig({ muted_color: v }); } },
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } },
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['main_title', config.main_title || defaultConfig.main_title],
+    ['subtitle', config.subtitle || defaultConfig.subtitle],
+  ])
+});
+
+function toggleDemo(btn, demoId, view) {
+  const parent = btn.closest('.flex');
+  parent.querySelectorAll('.toggle-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = 'transparent';
+    b.style.color = '#7a6f63';
+  });
+  btn.classList.add('active');
+  btn.style.background = '#be3144';
+  btn.style.color = '#f5f0e8';
+
+  const rawEl = document.getElementById(`${demoId}-raw`);
+  const procEl = document.getElementById(`${demoId}-processed`);
+  if (view === 'raw') {
+    rawEl.className = 'data-visible';
+    procEl.className = 'data-hidden';
+  } else {
+    rawEl.className = 'data-hidden';
+    procEl.className = 'data-visible';
+  }
+}
+
+const pipelineDetails = [
+  `<strong style="color:#f5f0e8;">1. Ingestion</strong><br>Pull data from 15+ source systems: Opera PMS, Bonvoy CRM, OTA feeds (Expedia, Booking.com), restaurant POS, spa systems, IoT sensors.<br><span style="color:#7a6f63;">Challenge: Different formats, schemas, update frequencies. Opera sends XML, OTAs send JSON, POS sends CSV batches.</span>`,
+  `<strong style="color:#f5f0e8;">2. Cleaning</strong><br>Remove duplicates (same booking from PMS + OTA), handle NULLs (impute occupancy from historical avg), fix typos ("Sheratn" → "Sheraton"), standardize text casing.<br><span style="color:#7a6f63;">Impact: ~23% of raw records have at least one quality issue.</span>`,
+  `<strong style="color:#f5f0e8;">3. Transform</strong><br>Normalize dates to ISO-8601, convert currencies to USD, standardize property names to internal IDs, encode categoricals (room_type → one-hot), scale numerics to [0,1].<br><span style="color:#7a6f63;">Without this: ML models treat "Ritz Carlton NYC" and "ritz carlton new york" as different hotels.</span>`,
+  `<strong style="color:#f5f0e8;">4. Enrich</strong><br>Add derived features: day_of_week, is_holiday, days_until_checkin, guest_lifetime_value, rolling_avg_occupancy_7d, competitor_rate_delta, weather_forecast.<br><span style="color:#7a6f63;">These engineered features often contribute 40-60% of a model's predictive power.</span>`,
+  `<strong style="color:#f5f0e8;">5. Validate</strong><br>Run schema checks (types, ranges), statistical tests (distribution drift), business rules (occupancy ≤ 100%, rate > $0), freshness checks (data < 24hrs old).<br><span style="color:#7a6f63;">Catches ~8% of records that pass cleaning but still fail business logic.</span>`
+];
+
+function showPipelineDetail(idx) {
+  const steps = document.querySelectorAll('.pipeline-step');
+  steps.forEach((s, i) => s.classList.toggle('lit', i === idx));
+  const detail = document.getElementById('pipeline-detail');
+  detail.style.display = 'block';
+  detail.innerHTML = pipelineDetails[idx];
+}
+
+function scrollToSection(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.accuracy-bar').forEach(bar => {
+        bar.style.width = bar.dataset.target + '%';
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', function() {
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+  
+  // Setup accuracy bar observers
+  document.querySelectorAll('.accuracy-bar').forEach(bar => {
+    observer.observe(bar.closest('section'));
+  });
+  
+  // Trigger bars that are already visible on load
+  setTimeout(() => {
+    document.querySelectorAll('.accuracy-bar').forEach(bar => {
+      const section = bar.closest('section');
+      const rect = section.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        bar.style.width = bar.dataset.target + '%';
+      }
+    });
+  }, 300);
+});
+</script>
+</body>
+</html>
