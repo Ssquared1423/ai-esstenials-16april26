@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Fields Venn Diagram</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&amp;family=Source+Sans+3:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+
+    .venn-circle {
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      cursor: default;
+      transform-origin: center;
+      opacity: 0;
+      transform: scale(0.85);
+      filter: blur(8px);
+    }
+    
+    .venn-circle.revealed {
+      opacity: 0.35;
+      transform: scale(1);
+      filter: blur(0px);
+      transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: floatCircle 6s ease-in-out infinite;
+    }
+    
+    @keyframes floatCircle {
+      0%, 100% { 
+        opacity: 0.35;
+        filter: blur(0px);
+      }
+      50% { 
+        opacity: 0.45;
+        filter: blur(0.5px) brightness(1.02);
+      }
+    }
+    
+    .venn-circle.revealed:hover {
+      filter: brightness(1.08);
+      animation-play-state: paused;
+      cursor: pointer;
+    }
+    .venn-circle.revealed.active {
+      filter: brightness(1.12) saturate(1.2);
+      stroke-width: 3;
+      animation-play-state: paused;
+    }
+    
+    .label-text {
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    
+    .label-text.revealed {
+      opacity: 1;
+    }
+
+    .info-card {
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    .info-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .example-chip {
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .example-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .example-chip.expanded {
+      background: #3d2c1e !important;
+      color: #f5f0e8 !important;
+    }
+
+    .pulse-ring {
+      animation: pulseRing 2.5s ease-out infinite;
+    }
+    @keyframes pulseRing {
+      0% { opacity: 0.6; r: 0; }
+      70% { opacity: 0; r: 18; }
+      100% { opacity: 0; r: 18; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+    .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+
+    .label-text {
+      font-family: 'Playfair Display', Georgia, serif;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    
+    .label-text.revealed {
+      opacity: 1;
+    }
+    .body-font {
+      font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+    }
+
+    .scroll-wrapper {
+      height: 100%;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .svg-tooltip {
+      position: absolute;
+      background: #3d2c1e;
+      color: #f5f0e8;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      z-index: 50;
+      font-family: 'Source Sans 3', sans-serif;
+    }
+    .svg-tooltip.show { opacity: 1; }
+
+    .legend-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full" style="background:#f5f0e8;">
+  <!-- Marriott Tech Accelerator Logo -->
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+    <img src="https://media.licdn.com/dms/image/v2/D560BAQG5HWvEKmL2dQ/company-logo_200_200/B56ZbXMuBnHUAI-/0/1747367158280/marriott_tech_accelerator_logo?e=2147483647&v=beta&t=4uVjtOWSZDeWtgAb71OHnpClWt4Q7YYIu671d-hAl7w" 
+         alt="Marriott Tech Accelerator" 
+         style="width: 180px; height: auto; opacity: 0.95;">
+  </div>
+  
+  <div class="scroll-wrapper" id="app-wrapper" style="background:#f5f0e8;"><!-- Header -->
+   <header class="text-center pt-8 pb-2 px-4 fade-in stagger-1" role="banner">
+    <h1 id="mainTitle" style="font-family:'Playfair Display',Georgia,serif; color:#3d2c1e; font-size:2.2rem; font-weight:800; letter-spacing:-0.5px; line-height:1.2;">Artificial Intelligence &amp; Its Fields</h1>
+   </header><!-- Venn Diagram -->
+   <section class="flex justify-center px-4 mt-2 fade-in stagger-2" role="img" aria-label="Interactive Venn diagram of AI fields">
+    <div style="position:relative; width:100%; max-width:900px;">
+     <svg id="vennSvg" viewbox="0 0 640 520" style="width:100%; height:auto;" aria-hidden="true"><!-- AI - outermost --> <ellipse class="venn-circle" data-field="ai" cx="320" cy="260" rx="310" ry="260" fill="#e8dfd3" fill-opacity="0.55" stroke="#b8a898" stroke-width="3" /> <!-- ML --> <ellipse class="venn-circle" data-field="ml" cx="300" cy="270" rx="215" ry="185" fill="#c9b99a" fill-opacity="0.45" stroke="#a89878" stroke-width="2.5" /> <!-- DL --> <ellipse class="venn-circle" data-field="dl" cx="270" cy="290" rx="140" ry="125" fill="#a08060" fill-opacity="0.38" stroke="#8a6e52" stroke-width="2.2" /> <!-- Generative AI --> <ellipse class="venn-circle" data-field="genai" cx="330" cy="240" rx="100" ry="90" fill="#d4a574" fill-opacity="0.35" stroke="#c49464" stroke-width="2" /> <!-- Computer Vision --> <ellipse class="venn-circle" data-field="cv" cx="210" cy="310" rx="80" ry="65" fill="#d4664a" fill-opacity="0.35" stroke="#c04e34" stroke-width="2" /> <!-- NLP --> <ellipse class="venn-circle" data-field="nlp" cx="340" cy="310" rx="80" ry="65" fill="#4a7a6a" fill-opacity="0.35" stroke="#3a6858" stroke-width="2" /> <!-- Robotics --> <ellipse class="venn-circle" data-field="robotics" cx="470" cy="200" rx="90" ry="75" fill="#5a6e8a" fill-opacity="0.35" stroke="#4a5e78" stroke-width="2" /> <!-- Expert Systems --> <ellipse class="venn-circle" data-field="expert" cx="490" cy="350" rx="85" ry="68" fill="#8a6a9a" fill-opacity="0.35" stroke="#7a5a8a" stroke-width="2" />      <!-- Labels --> <text x="320" y="62" text-anchor="middle" class="label-text" data-field="ai" fill="#3d2c1e" font-size="32" font-weight="900">
+      AI
+     </text> <text x="380" y="145" text-anchor="middle" class="label-text" data-field="ml" fill="#5a4a3a" font-size="24" font-weight="800">
+      Machine Learning
+     </text> <text x="270" y="265" text-anchor="middle" class="label-text" data-field="dl" fill="#5a3e28" font-size="20" font-weight="800">
+      Deep Learning
+     </text> <text x="340" y="240" text-anchor="middle" class="label-text" data-field="genai" fill="#8a6a3a" font-size="18" font-weight="800">
+      Generative
+     </text> <text x="340" y="258" text-anchor="middle" class="label-text" data-field="genai" fill="#8a6a3a" font-size="18" font-weight="800">
+      AI
+     </text> <text x="210" y="306" text-anchor="middle" class="label-text" data-field="cv" fill="#b83e24" font-size="17" font-weight="800">
+      Computer
+     </text> <text x="210" y="324" text-anchor="middle" class="label-text" data-field="cv" fill="#b83e24" font-size="17" font-weight="800">
+      Vision
+     </text> <text x="340" y="316" text-anchor="middle" class="label-text" data-field="nlp" fill="#2a5a4a" font-size="17" font-weight="800">
+      NLP
+     </text> <text x="470" y="202" text-anchor="middle" class="label-text" data-field="robotics" fill="#3a4e68" font-size="17" font-weight="800">
+      Robotics
+     </text> <text x="490" y="346" text-anchor="middle" class="label-text" data-field="expert" fill="#6a4a7a" font-size="17" font-weight="800">
+      Expert
+     </text> <text x="490" y="364" text-anchor="middle" class="label-text" data-field="expert" fill="#6a4a7a" font-size="17" font-weight="800">
+      Systems
+     </text> <!-- Pulse hints --> <circle class="pulse-ring" cx="210" cy="310" fill="#d4664a" opacity="0.4" /> <circle class="pulse-ring" cx="340" cy="310" fill="#4a7a6a" opacity="0.4" style="animation-delay:0.8s" /> <circle class="pulse-ring" cx="470" cy="200" fill="#5a6e8a" opacity="0.4" style="animation-delay:1.6s" />
+    </svg>
+     <div id="svgTooltip" class="svg-tooltip"></div>
+    </div>
+   </section><!-- Legend -->
+   <nav class="flex flex-wrap justify-center gap-3 px-4 mt-1 mb-3 fade-in stagger-3" aria-label="Diagram legend"><button onclick="selectField('ai')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#e8dfd3; border:2px solid #b8a898;"></span>AI</button> <button onclick="selectField('ml')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#c9b99a; border:2px solid #a89878;"></span>ML</button> <button onclick="selectField('dl')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#a08060; border:2px solid #8a6e52;"></span>Deep Learning</button> <button onclick="selectField('genai')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#d4a574; border:2px solid #c49464;"></span>Gen AI</button> <button onclick="selectField('cv')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#d4664a; border:2px solid #c04e34;"></span>Computer Vision</button> <button onclick="selectField('nlp')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#4a7a6a; border:2px solid #3a6858;"></span>NLP</button> <button onclick="selectField('robotics')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#5a6e8a; border:2px solid #4a5e78;"></span>Robotics</button> <button onclick="selectField('expert')" class="flex items-center gap-2 body-font text-sm" style="color:#5a4a3a;"><span class="legend-dot" style="background:#8a6a9a; border:2px solid #7a5a8a;"></span>Expert Systems</button>
+   </nav><!-- Info Card -->
+   <section class="px-4 pb-8 flex justify-center fade-in stagger-4">
+    <div id="infoCard" class="info-card w-full" style="max-width:680px; background:#fffcf7; border-radius:18px; border:1.5px solid #e0d6c8; padding:28px 30px; box-shadow: 0 2px 20px rgba(60,40,20,0.06);">
+     <div id="cardContent">
+      <p class="body-font" style="color:#8a7a6a; font-size:1.2rem; text-align:center; font-weight:600;"><i data-lucide="mouse-pointer-click" style="width:24px;height:24px;display:inline-block;vertical-align:middle;margin-right:8px;color:#a08060;"></i> Click anywhere to reveal each AI field step by step</p>
+     </div>
+    </div>
+   </section>
+   <!-- Click overlay to advance -->
+   <div id="clickOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; display: block;"></div>
+  </div>
+  <script>
+    // --- DATA ---
+    const fieldData = {
+      ai: {
+        title: "Artificial Intelligence",
+        color: "#b8a898",
+        icon: "brain",
+        desc: "AI is the broadest field — any technique that enables machines to mimic human-like intelligence, from simple rules to complex learning.",
+        relationship: "Everything else on this diagram is a subset or application of AI.",
+        examples: [
+          { name: "Marriott Bonvoy App", detail: "The Marriott Bonvoy mobile app uses rule-based and intelligent algorithms to offer personalized stay recommendations and instant booking." },
+          { name: "Revenue Management", detail: "Marriott's pricing systems use classic AI algorithms to optimize room rates based on demand, occupancy, and market conditions." },
+          { name: "Guest Journey Planning", detail: "AI guides guests through their entire stay — from pre-arrival communications to post-checkout surveys." },
+          { name: "Property Concierge", detail: "AI-powered concierge systems understand guest requests and connect them with local experiences and hotel services." }
+        ]
+      },
+      ml: {
+        title: "Machine Learning",
+        color: "#a89878",
+        icon: "trending-up",
+        desc: "ML is the subset of AI where systems learn patterns from data instead of being explicitly programmed with rules.",
+        relationship: "ML lives inside AI. Deep Learning, NLP, Computer Vision, and Gen AI all use ML techniques.",
+        examples: [
+          { name: "Stay Predictions", detail: "ML learns from millions of guest bookings to predict room types each guest will prefer based on their history." },
+          { name: "Fraud Detection", detail: "Marriott's payment systems use ML to spot suspicious bookings and protect both guests and properties." },
+          { name: "Churn Prediction", detail: "ML identifies at-risk loyalty members likely to switch competitors, enabling targeted retention offers." },
+          { name: "Demand Forecasting", detail: "ML models predict booking patterns weeks in advance, helping properties optimize staffing and inventory." }
+        ]
+      },
+      dl: {
+        title: "Deep Learning",
+        color: "#8a6e52",
+        icon: "layers",
+        desc: "Deep Learning uses neural networks with many layers to automatically discover intricate patterns — it powers today's most impressive AI.",
+        relationship: "DL is a subset of ML, and it's the engine behind modern Computer Vision, NLP, and Generative AI breakthroughs.",
+        examples: [
+          { name: "Face Recognition Check-in", detail: "Select Marriott properties pilot facial recognition at kiosks — deep networks instantly verify your identity for keyless entry." },
+          { name: "Room Image Analysis", detail: "Deep learning models automatically inspect guest room photos post-checkout, flagging maintenance issues instantly." },
+          { name: "Voice-Activated Rooms", detail: "Room devices use deep neural networks to understand guest voice commands in multiple languages and accents." },
+          { name: "Personalized Climate Control", detail: "Deep networks learn each guest's temperature preferences and adjust HVAC systems proactively during their stay." }
+        ]
+      },
+      genai: {
+        title: "Generative AI",
+        color: "#c49464",
+        icon: "sparkles",
+        desc: "Generative AI creates new content — text, images, code, or conversations — based on patterns learned from training data. It's built on deep learning, especially transformer neural networks.",
+        relationship: "Gen AI uses Deep Learning and Machine Learning. It overlaps with NLP (for text) and Computer Vision (for image generation).",
+        examples: [
+          { name: "Personalized Email Campaigns", detail: "Marriott uses generative AI to write personalized pre-arrival emails and post-stay follow-ups tailored to each guest's profile and booking history." },
+          { name: "Dynamic Offer Generation", detail: "Gen AI creates unique promotional offers and packages based on guest preferences, loyalty tier, and seasonal trends." },
+          { name: "Content Creation at Scale", detail: "Marriott's marketing teams use gen AI to quickly generate property descriptions, blog posts, and social media content across thousands of properties." },
+          { name: "Chatbot Conversations", detail: "Marriott's concierge chatbots use generative AI to have natural, contextual conversations—answering questions, making recommendations, and handling requests." }
+        ]
+      },
+      cv: {
+        title: "Computer Vision",
+        color: "#c04e34",
+        icon: "eye",
+        desc: "Computer Vision teaches machines to understand images and video — recognizing objects, faces, scenes, and even emotions.",
+        relationship: "CV sits at the intersection of Deep Learning and real-world visual tasks.",
+        examples: [
+          { name: "Occupancy Monitoring", detail: "Cameras with computer vision track real-time room occupancy without intrusion, optimizing housekeeping schedules." },
+          { name: "Parking Lot Management", detail: "Computer vision counts available spaces and directs guests to the nearest parking, reducing frustration." },
+          { name: "Quality Inspections", detail: "Computer vision audits room cleanliness by analysing photos — ensuring consistent standards across all properties." },
+          { name: "Queue Analytics", detail: "Front desk and restaurant queues are monitored via computer vision to alert staff when wait times spike." }
+        ]
+      },
+      nlp: {
+        title: "Natural Language Processing",
+        color: "#3a6858",
+        icon: "message-square",
+        desc: "NLP enables machines to read, understand, and generate human language — from text to speech and back.",
+        relationship: "NLP overlaps with Deep Learning (transformers) and Generative AI is a major NLP application.",
+        examples: [
+          { name: "Multi-language Support", detail: "Marriott's chatbots understand guest inquiries in 50+ languages using neural machine translation." },
+          { name: "Review Analysis", detail: "NLP reads thousands of guest reviews daily, automatically categorizing feedback into themes like cleanliness, service, noise." },
+          { name: "Concierge Chatbot", detail: "Natural language understanding lets guests ask 'How do I get to the airport?' and receive contextual answers." },
+          { name: "Email & SMS Personalization", detail: "NLP generates personalized pre-arrival messages and special offers tailored to each guest's profile and preferences." }
+        ]
+      },
+      robotics: {
+        title: "Robotics",
+        color: "#4a5e78",
+        icon: "cpu",
+        desc: "Robotics combines AI with physical machines — enabling robots to perceive their environment, make decisions, and take action.",
+        relationship: "Robotics sits partly inside AI (planning, perception) and partly outside (mechanical engineering).",
+        examples: [
+          { name: "Room Service Robots", detail: "Prototype delivery robots navigate hallways to bring room service orders, reducing contact and labor costs." },
+          { name: "Housekeeping Support", detail: "Robotic vacuum and cleaning assistants work alongside housekeeping staff in public areas and meeting spaces." },
+          { name: "Luggage Handling", detail: "Autonomous robots assist bellhops by transporting guest luggage through properties, especially large resorts." },
+          { name: "Inventory Management", detail: "Mobile robots autonomously patrol storage areas, scanning and tracking linens, toiletries, and mini-bar inventory." }
+        ]
+      },
+      expert: {
+        title: "Expert Systems",
+        color: "#7a5a8a",
+        icon: "book-open",
+        desc: "Expert Systems encode human specialist knowledge into if-then rules — one of the earliest forms of practical AI.",
+        relationship: "Expert Systems are a classic branch of AI that doesn't require ML — they use hand-crafted rules from domain experts.",
+        examples: [
+          { name: "Loyalty Points Engine", detail: "Marriott Bonvoy applies complex rules: earn points based on room rate, brand level, status tier, and promotion codes." },
+          { name: "Rate Approval Workflow", detail: "Expert systems validate pricing decisions using hospitality rules — e.g., weekend rates must not undercut weekday corporate rates." },
+          { name: "Dietary Restrictions Logic", detail: "Restaurant systems apply allergy and dietary preference rules to instantly identify suitable menu items for guests." },
+          { name: "Maintenance Scheduling", detail: "Expert rules prioritize maintenance tasks: emergency repairs first, then guest-impacting issues, then routine maintenance." }
+        ]
+      }
+    };
+
+    let activeField = null;
+    let expandedExample = null;
+    
+    // --- CLICK-DRIVEN REVEAL SYSTEM ---
+    const revealOrder = ['ai', 'ml', 'dl', 'genai', 'cv', 'nlp', 'robotics', 'expert'];
+    let currentRevealIndex = 0;
+    
+    function revealNextField() {
+      if (currentRevealIndex >= revealOrder.length) {
+        // All fields revealed - remove overlay and enable normal interaction
+        document.getElementById('clickOverlay').style.display = 'none';
+        document.getElementById('cardContent').innerHTML = `
+          <p class="body-font" style="color:#8a7a6a; font-size:1.2rem; text-align:center; font-weight:600;">
+            <i data-lucide="mouse-pointer-click" style="width:24px;height:24px;display:inline-block;vertical-align:middle;margin-right:8px;color:#a08060;"></i>
+            Click any circle or legend item to learn more
+          </p>`;
+        lucide.createIcons();
+        return;
+      }
+      
+      const fieldId = revealOrder[currentRevealIndex];
+      const circle = document.querySelector(`.venn-circle[data-field="${fieldId}"]`);
+      const labels = document.querySelectorAll(`.label-text[data-field="${fieldId}"]`);
+      
+      if (circle) {
+        circle.classList.add('revealed');
+      }
+      
+      labels.forEach(label => label.classList.add('revealed'));
+      
+      currentRevealIndex++;
+    }
+    
+    // Set up click overlay listener
+    document.getElementById('clickOverlay').addEventListener('click', revealNextField);
+
+    // --- SELECT FIELD ---
+    function selectField(fieldId) {
+      // Only allow selection after all fields are revealed
+      if (currentRevealIndex < revealOrder.length) return;
+      
+      const circles = document.querySelectorAll('.venn-circle');
+      circles.forEach(c => c.classList.remove('active'));
+
+      if (activeField === fieldId) {
+        activeField = null;
+        expandedExample = null;
+        showDefaultCard();
+        return;
+      }
+
+      activeField = fieldId;
+      expandedExample = null;
+      const el = document.querySelector(`.venn-circle[data-field="${fieldId}"]`);
+      if (el) el.classList.add('active');
+      renderCard(fieldId);
+    }
+
+    function showDefaultCard() {
+      const card = document.getElementById('infoCard');
+      card.classList.remove('visible');
+      setTimeout(() => {
+        document.getElementById('cardContent').innerHTML = `
+          <p class="body-font" style="color:#8a7a6a; font-size:1.2rem; text-align:center; font-weight:600;">
+            <i data-lucide="mouse-pointer-click" style="width:24px;height:24px;display:inline-block;vertical-align:middle;margin-right:8px;color:#a08060;"></i>
+            Click any circle or legend item to learn more
+          </p>`;
+        lucide.createIcons();
+        card.classList.add('visible');
+      }, 120);
+    }
+
+    function renderCard(fieldId) {
+      const d = fieldData[fieldId];
+      const card = document.getElementById('infoCard');
+      card.classList.remove('visible');
+
+      setTimeout(() => {
+        const examplesHtml = d.examples.map((ex, i) => `
+          <button class="example-chip body-font" onclick="toggleExample('${fieldId}',${i})" id="chip-${fieldId}-${i}"
+            style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:40px;border:1.5px solid ${d.color};background:transparent;color:#3d2c1e;font-size:0.9rem;font-weight:500;">
+            <i data-lucide="zap" style="width:14px;height:14px;color:${d.color};"></i>
+            ${ex.name}
+          </button>
+        `).join('');
+
+        document.getElementById('cardContent').innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:${d.color}22;">
+              <i data-lucide="${d.icon}" style="width:22px;height:22px;color:${d.color};"></i>
+            </span>
+            <h2 style="font-family:'Playfair Display',Georgia,serif;color:#3d2c1e;font-size:1.45rem;font-weight:700;margin:0;">${d.title}</h2>
+          </div>
+          <p class="body-font" style="color:#5a4a3a;font-size:0.98rem;line-height:1.65;margin-bottom:6px;">${d.desc}</p>
+          <p class="body-font" style="color:#8a7a6a;font-size:0.88rem;font-style:italic;margin-bottom:16px;">
+            <i data-lucide="git-branch" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;color:#a08060;"></i>
+            ${d.relationship}
+          </p>
+          <p class="body-font" style="color:#3d2c1e;font-size:0.85rem;font-weight:600;margin-bottom:8px;">Real-world examples — click to learn more:</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">${examplesHtml}</div>
+          <div id="exampleDetail" class="body-font" style="margin-top:14px;padding:16px 18px;border-radius:12px;background:#f0ebe2;color:#3d2c1e;font-size:0.95rem;line-height:1.6;display:none;border-left:4px solid ${d.color};"></div>
+        `;
+
+        lucide.createIcons();
+        card.classList.add('visible');
+      }, 150);
+    }
+
+    function toggleExample(fieldId, idx) {
+      const d = fieldData[fieldId];
+      const detail = document.getElementById('exampleDetail');
+      const chip = document.getElementById(`chip-${fieldId}-${idx}`);
+
+      d.examples.forEach((_, i) => {
+        const c = document.getElementById(`chip-${fieldId}-${i}`);
+        if (c) c.classList.remove('expanded');
+      });
+
+      if (expandedExample === idx) {
+        expandedExample = null;
+        detail.style.display = 'none';
+        return;
+      }
+
+      expandedExample = idx;
+      chip.classList.add('expanded');
+      detail.innerHTML = `<strong>${d.examples[idx].name}:</strong> ${d.examples[idx].detail}`;
+      detail.style.display = 'block';
+    }
+
+    // --- SVG interaction ---
+    const svg = document.getElementById('vennSvg');
+    const tooltip = document.getElementById('svgTooltip');
+
+    svg.addEventListener('click', (e) => {
+      if (currentRevealIndex >= revealOrder.length) {
+        const circle = e.target.closest('.venn-circle.revealed');
+        if (circle) selectField(circle.dataset.field);
+      }
+    });
+
+    svg.addEventListener('mousemove', (e) => {
+      if (currentRevealIndex >= revealOrder.length) {
+        const circle = e.target.closest('.venn-circle.revealed');
+        if (circle) {
+          const f = fieldData[circle.dataset.field];
+          tooltip.textContent = f.title;
+          tooltip.classList.add('show');
+          const rect = svg.parentElement.getBoundingClientRect();
+          tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+          tooltip.style.top = (e.clientY - rect.top - 32) + 'px';
+        } else {
+          tooltip.classList.remove('show');
+        }
+      }
+    });
+
+    svg.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+
+    // --- Elements SDK ---
+    const defaultConfig = {
+      main_title: "Artificial Intelligence & Its Fields",
+      font_family: "Playfair Display",
+      font_size: 16,
+      background_color: "#f5f0e8",
+      surface_color: "#fffcf7",
+      text_color: "#3d2c1e",
+      primary_action: "#a08060",
+      secondary_action: "#8a7a6a"
+    };
+
+    function applyConfig(config) {
+      const bg = config.background_color || defaultConfig.background_color;
+      const surface = config.surface_color || defaultConfig.surface_color;
+      const text = config.text_color || defaultConfig.text_color;
+      const primary = config.primary_action || defaultConfig.primary_action;
+      const secondary = config.secondary_action || defaultConfig.secondary_action;
+      const font = config.font_family || defaultConfig.font_family;
+      const size = config.font_size || defaultConfig.font_size;
+
+      document.body.style.background = bg;
+      document.getElementById('app-wrapper').style.background = bg;
+
+      const title = document.getElementById('mainTitle');
+      title.textContent = config.main_title || defaultConfig.main_title;
+      title.style.fontFamily = `${font}, Georgia, serif`;
+      title.style.color = text;
+      title.style.fontSize = `${size * 2.2 / 16}rem`;
+
+      const card = document.getElementById('infoCard');
+      card.style.background = surface;
+      card.style.borderColor = bg === surface ? '#e0d6c8' : `${text}20`;
+    }
+
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => applyConfig(config),
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }},
+          { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }},
+          { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }},
+          { get: () => config.primary_action || defaultConfig.primary_action, set: v => { config.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); }},
+          { get: () => config.secondary_action || defaultConfig.secondary_action, set: v => { config.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); }}
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: v => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: v => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+        }
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ["main_title", config.main_title || defaultConfig.main_title]
+      ])
+    });
+
+    // Init
+    lucide.createIcons();
+    // Start with initial instruction visible
+    document.getElementById('infoCard').classList.add('visible');
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ebcb92673527ed4',t:'MTc3NjEwNjkyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

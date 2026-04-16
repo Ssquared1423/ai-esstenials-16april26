@@ -1,194 +1,200 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Essentials - Marriott International</title>
+  <title>AI Essentials - Index</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(135deg, #f5f1e8 0%, #ede5d8 100%);
+      min-height: 100vh;
     }
     
     .card {
       transition: all 0.3s ease;
-      border: 2px solid transparent;
+      cursor: pointer;
     }
     
     .card:hover {
-      transform: translateY(-4px);
-      border-color: #8B5CF6;
-      box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.1);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
     
-    .gradient-text {
-      background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .card-disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     
-    .gradient-bg {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .card-disabled:hover {
+      transform: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .badge-active {
+      background: rgba(184, 134, 11, 0.15);
+      color: #b8860b;
+      border: 2px solid rgba(184, 134, 11, 0.3);
+    }
+    
+    .badge-coming {
+      background: rgba(108, 117, 125, 0.15);
+      color: #6c757d;
+      border: 2px solid rgba(108, 117, 125, 0.3);
+    }
+    
+    .icon-wrapper {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="p-8">
   
-  <!-- Header -->
-  <header class="gradient-bg text-white py-12 shadow-lg">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="flex items-center gap-3 mb-4">
-        <div id="brain-icon"></div>
-        <h1 class="text-4xl font-bold">AI Journey Hub</h1>
-      </div>
-      <p class="text-xl text-purple-100">Explore interactive AI training modules and resources</p>
+  <!-- Marriott Tech Accelerator Logo -->
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+    <img src="https://media.licdn.com/dms/image/v2/D560BAQG5HWvEKmL2dQ/company-logo_200_200/B56ZbXMuBnHUAI-/0/1747367158280/marriott_tech_accelerator_logo?e=2147483647&v=beta&t=4uVjtOWSZDeWtgAb71OHnpClWt4Q7YYIu671d-hAl7w" 
+         alt="Marriott Tech Accelerator" 
+         style="width: 180px; height: auto; opacity: 0.95;">
+  </div>
+  
+  <header class="text-center mb-16 mt-8">
+    <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full mb-6" style="background:rgba(184,134,11,0.15); border:2px solid rgba(184,134,11,0.25);">
+      <span style="font-size: 32px;">🤖</span>
+      <span style="color:#b8860b; font-weight:700; font-size:18px; letter-spacing:1px;">AI ESSENTIALS COLLECTION</span>
     </div>
+    
+    <h1 class="font-['DM_Serif_Display'] text-7xl md:text-8xl font-bold mb-6" style="color:#000000;">
+      Interactive AI Demonstrations
+    </h1>
+    
+    <p class="text-2xl md:text-3xl opacity-80 max-w-3xl mx-auto" style="color:#000000;">
+      Explore comprehensive AI training materials and interactive demonstrations
+    </p>
   </header>
 
-  <!-- Main Content -->
-  <main class="max-w-6xl mx-auto px-6 py-12">
-    
-    <div class="mb-10">
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">Available Modules</h2>
-      <p class="text-gray-600">Select a module to explore the interactive content</p>
-    </div>
-
-    <!-- Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <main class="max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       
       <!-- Card 1: AI Journey Roadmap -->
-      <a href="ai-journey-roadmap.html" class="card bg-white rounded-xl p-6 shadow-md">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-purple-100 p-3 rounded-lg">
-            <div id="map-icon" class="text-purple-600"></div>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800">AI Journey Roadmap</h3>
+      <a href="ai-journey-roadmap.html" class="card bg-white rounded-3xl p-8 shadow-lg" style="border: 3px solid #b8860b;">
+        <div class="icon-wrapper" style="background: linear-gradient(135deg, rgba(184,134,11,0.15), rgba(184,134,11,0.25));">
+          🚀
         </div>
-        <p class="text-gray-600 mb-4">
-          Explore the comprehensive roadmap for AI implementation and learning paths.
+        <span class="badge badge-active mb-4">Interactive</span>
+        <h2 class="font-['DM_Serif_Display'] text-3xl font-bold mb-3" style="color:#000000;">
+          AI Journey Roadmap
+        </h2>
+        <p class="text-lg opacity-80 mb-4" style="color:#000000;">
+          Explore the historical timeline of AI development from the 1950s to today's generative AI revolution. Interactive journey through 70+ years of innovation.
         </p>
-        <div class="flex items-center text-purple-600 font-semibold">
-          <span>View Module</span>
-          <div id="arrow-right-1" class="ml-2"></div>
+        <div class="flex items-center gap-2 text-base font-semibold" style="color:#b8860b;">
+          <span>Launch Demo</span>
+          <span>→</span>
         </div>
       </a>
 
-      <!-- Card 2: AI Classification -->
-      <a href="ai-journey-updated.html" class="card bg-white rounded-xl p-6 shadow-md">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-pink-100 p-3 rounded-lg">
-            <div id="refresh-icon" class="text-pink-600"></div>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800">AI Journey Updated</h3>
+      <!-- Card 2: Training Lifecycle Marriott Example 2 -->
+      <a href="training_lifecycle_marriott_example2.html" class="card bg-white rounded-3xl p-8 shadow-lg" style="border: 3px solid #5a8a3c;">
+        <div class="icon-wrapper" style="background: linear-gradient(135deg, rgba(90,138,60,0.15), rgba(90,138,60,0.25));">
+          💚
         </div>
-        <p class="text-gray-600 mb-4">
-          The latest updates and enhancements to the AI Journey program for Marriott.
+        <span class="badge badge-active mb-4" style="background: rgba(90,138,60,0.15); color:#5a8a3c; border-color:rgba(90,138,60,0.3);">Interactive</span>
+        <h2 class="font-['DM_Serif_Display'] text-3xl font-bold mb-3" style="color:#000000;">
+          AI Lifecycle: Guest Experience
+        </h2>
+        <p class="text-lg opacity-80 mb-4" style="color:#000000;">
+          Interactive circular diagram showing the 7-stage AI development lifecycle with real Marriott examples focused on guest personalization.
         </p>
-        <div class="flex items-center text-purple-600 font-semibold">
-          <span>View Module</span>
-          <div id="arrow-right-2" class="ml-2"></div>
+        <div class="flex items-center gap-2 text-base font-semibold" style="color:#5a8a3c;">
+          <span>Launch Demo</span>
+          <span>→</span>
         </div>
       </a>
 
-      <!-- Card 3: Training Lifecycle -->
-      <a href="Documents/training_lifecycle.html" class="card bg-white rounded-xl p-6 shadow-md">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-blue-100 p-3 rounded-lg">
-            <div id="cycle-icon" class="text-blue-600"></div>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800">AI Lifecycle Flow</h3>
+      <!-- Card 3: Training Lifecycle Marriott -->
+      <a href="training_lifecycle_marriott.html" class="card bg-white rounded-3xl p-8 shadow-lg" style="border: 3px solid #3f6d8f;">
+        <div class="icon-wrapper" style="background: linear-gradient(135deg, rgba(63,109,143,0.15), rgba(63,109,143,0.25));">
+          🔵
         </div>
-        <p class="text-gray-600 mb-4">
-          Interactive flow chart demonstrating the AI training and implementation lifecycle.
+        <span class="badge badge-active mb-4" style="background: rgba(63,109,143,0.15); color:#3f6d8f; border-color:rgba(63,109,143,0.3);">Interactive</span>
+        <h2 class="font-['DM_Serif_Display'] text-3xl font-bold mb-3" style="color:#000000;">
+          AI Lifecycle: No-Show Reduction
+        </h2>
+        <p class="text-lg opacity-80 mb-4" style="color:#000000;">
+          Explore the complete AI development lifecycle with Marriott's no-show prediction system. See how AI reduces cancellations and increases revenue.
         </p>
-        <div class="flex items-center text-purple-600 font-semibold">
-          <span>View Module</span>
-          <div id="arrow-right-3" class="ml-2"></div>
+        <div class="flex items-center gap-2 text-base font-semibold" style="color:#3f6d8f;">
+          <span>Launch Demo</span>
+          <span>→</span>
         </div>
       </a>
 
-      <!-- Card 4: Data processing examples -->
-      <a href="Documents/training-Pt3.html" class="card bg-white rounded-xl p-6 shadow-md">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-green-100 p-3 rounded-lg">
-            <div id="database-icon" class="text-green-600"></div>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800">Data Processing Layer</h3>
+      <!-- Card 4: Data Processing Layer -->
+      <a href="training-Pt3-sidebyside.html" class="card bg-white rounded-3xl p-8 shadow-lg" style="border: 3px solid #be3144;">
+        <div class="icon-wrapper" style="background: linear-gradient(135deg, rgba(190,49,68,0.15), rgba(190,49,68,0.25));">
+          🔴
         </div>
-        <p class="text-gray-600 mb-4">
-          Deep dive into the data processing layer with interactive demonstrations.
+        <span class="badge badge-active mb-4" style="background: rgba(190,49,68,0.15); color:#be3144; border-color:rgba(190,49,68,0.3);">Interactive</span>
+        <h2 class="font-['DM_Serif_Display'] text-3xl font-bold mb-3" style="color:#000000;">
+          Data Processing Layer
+        </h2>
+        <p class="text-lg opacity-80 mb-4" style="color:#000000;">
+          See how raw hotel data transforms into AI-ready datasets. Compare raw vs processed data across sentiment analysis, pricing, personalization, and fraud detection.
         </p>
-        <div class="flex items-center text-purple-600 font-semibold">
-          <span>View Module</span>
-          <div id="arrow-right-4" class="ml-2"></div>
+        <div class="flex items-center gap-2 text-base font-semibold" style="color:#be3144;">
+          <span>Launch Demo</span>
+          <span>→</span>
         </div>
       </a>
 
-      <!-- Card 5: Demistfying AI -->
-      <a href="Downloads/training_pt1.html" class="card bg-white rounded-xl p-6 shadow-md">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-indigo-100 p-3 rounded-lg">
-            <div id="book-icon" class="text-indigo-600"></div>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800">Training Part 1</h3>
+      <!-- Card 5: Coming Soon Placeholder -->
+      <div class="card card-disabled bg-white rounded-3xl p-8 shadow-lg" style="border: 3px solid #6c757d;">
+        <div class="icon-wrapper" style="background: linear-gradient(135deg, rgba(108,117,125,0.15), rgba(108,117,125,0.25));">
+          📋
         </div>
-        <p class="text-gray-600 mb-4">
-          Foundation training module covering core AI concepts and principles.
+        <span class="badge badge-coming mb-4">Coming Soon</span>
+        <h2 class="font-['DM_Serif_Display'] text-3xl font-bold mb-3" style="color:#000000;">
+          Module 5
+        </h2>
+        <p class="text-lg opacity-80 mb-4" style="color:#000000;">
+          Additional AI training content will be added here soon. Check back later for more interactive demonstrations and learning materials.
         </p>
-        <div class="flex items-center text-purple-600 font-semibold">
-          <span>View Module</span>
-          <div id="arrow-right-5" class="ml-2"></div>
-        </div>
-      </a>
-
-    </div>
-
-    <!-- Info Section -->
-    <div class="mt-12 bg-white rounded-xl p-8 shadow-md border-l-4 border-purple-600">
-      <div class="flex items-start gap-4">
-        <div id="info-icon" class="text-purple-600 mt-1"></div>
-        <div>
-          <h3 class="text-xl font-bold text-gray-800 mb-2">About This Hub</h3>
-          <p class="text-gray-600 leading-relaxed">
-            This hub provides access to interactive AI training modules and resources designed 
-            for Marriott International's AI Journey program. Each module offers engaging, 
-            hands-on experiences to help you understand and implement AI solutions effectively.
-          </p>
+        <div class="flex items-center gap-2 text-base font-semibold" style="color:#6c757d;">
+          <span>Not Available</span>
+          <span>⏳</span>
         </div>
       </div>
-    </div>
 
+    </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-gray-300 py-8 mt-16">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-      <p class="mb-2">&copy; 2026 Marriott International AI Journey</p>
-      <p class="text-sm text-gray-400">Interactive Training & Development Platform</p>
-    </div>
+  <footer class="text-center mt-20 mb-8">
+    <p class="text-xl opacity-70" style="color:#000000;">
+      Select any module above to begin your interactive learning experience
+    </p>
+    <p class="text-lg opacity-50 mt-4" style="color:#000000;">
+      AI Essentials Collection © 2026
+    </p>
   </footer>
-
-  <script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-    
-    // Create specific icons
-    document.getElementById('brain-icon').innerHTML = lucide.icons['brain'].toSvg({ size: 40 });
-    document.getElementById('map-icon').innerHTML = lucide.icons['map'].toSvg({ size: 24 });
-    document.getElementById('refresh-icon').innerHTML = lucide.icons['refresh-cw'].toSvg({ size: 24 });
-    document.getElementById('cycle-icon').innerHTML = lucide.icons['git-branch'].toSvg({ size: 24 });
-    document.getElementById('database-icon').innerHTML = lucide.icons['database'].toSvg({ size: 24 });
-    document.getElementById('book-icon').innerHTML = lucide.icons['book-open'].toSvg({ size: 24 });
-    document.getElementById('info-icon').innerHTML = lucide.icons['info'].toSvg({ size: 24 });
-    
-    // Arrow icons for each card
-    for (let i = 1; i <= 5; i++) {
-      document.getElementById(`arrow-right-${i}`).innerHTML = lucide.icons['arrow-right'].toSvg({ size: 20 });
-    }
-  </script>
 
 </body>
 </html>

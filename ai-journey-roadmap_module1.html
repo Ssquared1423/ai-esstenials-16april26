@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Journey — Interactive Roadmap</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+  html, body { height: 100%; margin: 0; }
+  .app-shell { height: 100%; overflow-y: auto; overflow-x: hidden; }
+
+  /* Road styling */
+  .road-container {
+    position: relative;
+    min-height: 100vh;
+    padding: 100px 50px;
+  }
+
+  .road-segment {
+    position: relative;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .road-segment.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .road-path {
+    position: absolute;
+    width: 200px;
+    height: 6px;
+    background: linear-gradient(90deg, #b8860b 0%, #d4af37 100%);
+    box-shadow: 0 4px 15px rgba(184, 134, 11, 0.4);
+  }
+
+  .road-checkpoint {
+    position: relative;
+    background: rgba(184, 134, 11, 0.1);
+    border: 3px solid #b8860b;
+    border-radius: 30px;
+    padding: 40px 50px;
+    margin: 80px auto;
+    max-width: 1200px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform-origin: center;
+  }
+
+  .road-checkpoint:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 50px rgba(184, 134, 11, 0.3);
+    background: rgba(184, 134, 11, 0.15);
+  }
+
+  .road-checkpoint.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+  }
+
+  .road-checkpoint.locked:hover {
+    transform: none;
+  }
+
+  .checkpoint-marker {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    background: white;
+    border: 5px solid #b8860b;
+  }
+
+  .connecting-road {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    background: linear-gradient(180deg, #b8860b 0%, #d4af37 50%, #b8860b 100%);
+    box-shadow: 0 0 20px rgba(184, 134, 11, 0.5);
+    transition: height 0.8s ease;
+    height: 0;
+  }
+
+  .connecting-road.visible {
+    height: 100px;
+  }
+
+  .destination-badge {
+    display: inline-block;
+    padding: 10px 30px;
+    background: linear-gradient(135deg, #b8860b, #d4af37);
+    color: white;
+    border-radius: 50px;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(184, 134, 11, 0.4);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .progress-indicator {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    font-size: 24px;
+    font-weight: bold;
+    color: #b8860b;
+  }
+
+  .start-journey-btn {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 25px 60px;
+    font-size: 28px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #b8860b, #d4af37);
+    color: white;
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    box-shadow: 0 15px 40px rgba(184, 134, 11, 0.4);
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+
+  .start-journey-btn:hover {
+    transform: translateX(-50%) translateY(-5px);
+    box-shadow: 0 20px 50px rgba(184, 134, 11, 0.6);
+  }
+
+  .start-journey-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .final-destination {
+    text-align: center;
+    padding: 80px 40px;
+    background: linear-gradient(135deg, rgba(184, 134, 11, 0.1), rgba(212, 175, 55, 0.15));
+    border-radius: 40px;
+    margin: 60px auto;
+    max-width: 1400px;
+    border: 5px solid #b8860b;
+  }
+
+  .era-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
+
+  .road-curve {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border: 12px solid #b8860b;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+
+  .road-curve.visible {
+    opacity: 0.3;
+  }
+  </style>
+</head>
+<body class="bg-[#f5f1e8] text-[#000000] font-['Plus_Jakarta_Sans']">
+  <div class="app-shell" id="app-shell">
+    
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+      <span id="progressText">Journey: 0/7</span>
+    </div>
+
+    <!-- Marriott Tech Accelerator Logo -->
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+      <img src="https://media.licdn.com/dms/image/v2/D560BAQG5HWvEKmL2dQ/company-logo_200_200/B56ZbXMuBnHUAI-/0/1747367158280/marriott_tech_accelerator_logo?e=2147483647&v=beta&t=4uVjtOWSZDeWtgAb71OHnpClWt4Q7YYIu671d-hAl7w" 
+           alt="Marriott Tech Accelerator" 
+           style="width: 180px; height: auto; opacity: 0.95;">
+    </div>
+    
+    <!-- Hero Section -->
+    <header class="relative overflow-hidden px-12 pt-24 pb-32 text-center" style="background: linear-gradient(to bottom, #f5f1e8 0%, #ede5d8 100%);">
+      <div class="relative max-w-full mx-auto">
+        <div class="inline-flex items-center gap-3 px-6 py-2 rounded-full text-xl font-semibold tracking-widest uppercase mb-8" style="background:rgba(184,134,11,0.15); color:#b8860b; border:2px solid rgba(184,134,11,0.25);">
+          <span style="font-size: 32px;">🚀</span> Interactive AI Journey
+        </div>
+        <h1 class="font-['DM_Serif_Display'] text-8xl md:text-[12rem] leading-tight mb-6" style="color:#000000;">Intelligent Landscape</h1>
+        <p class="text-3xl md:text-5xl opacity-90 max-w-4xl mx-auto mb-12">Understand each milestone to build path to today's AI revolution</p>
+      </div>
+    </header>
+
+    <!-- Roadmap Container -->
+    <div class="road-container" id="roadContainer">
+      <!-- Road segments will be dynamically inserted here -->
+    </div>
+
+    <!-- Start Journey Button -->
+    <button class="start-journey-btn" id="startBtn" onclick="startJourney()">
+      Begin the Journey →
+    </button>
+
+  </div>
+
+  <!-- Modal for Use Cases -->
+  <div id="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: #f5f1e8; border: 3px solid #b8860b; border-radius: 30px; padding: 50px; max-width: 1400px; max-height: 90vh; overflow-y: auto; position: relative; margin: 20px;">
+      <button onclick="closeModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 48px; color: #b8860b; cursor: pointer; line-height: 1;">&times;</button>
+      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+        <div id="modalIcon" style="font-size: 80px;"></div>
+        <h3 id="modalTitle" style="font-family: 'DM Serif Display', serif; font-size: 60px; margin: 0; color: #000000;"></h3>
+      </div>
+      <div id="modalBody" style="font-size: 28px; line-height: 1.6; color: #000000;"></div>
+    </div>
+  </div>
+
+  <script>
+const timelineData = [
+  { 
+    year: "1950s", 
+    title: "The Dream Begins", 
+    desc: "Alan Turing asks, 'Can machines think?' — the Turing Test is born. Scientists start imagining computers that could mimic human thought.", 
+    color: "#6b7280", 
+    icon: "💡",
+    position: "left"
+  },
+  { 
+    year: "1960s–70s", 
+    title: "Early Experiments", 
+    desc: "The first chatbot, ELIZA, could hold a basic conversation. AI gets its name and its first research labs. Progress is slow — computers are enormous and expensive.", 
+    color: "#8b8fa3", 
+    icon: "💻",
+    position: "right"
+  },
+  { 
+    year: "1980s", 
+    title: "Expert Systems", 
+    desc: "Companies build rule-based systems: 'IF guest books suite THEN offer champagne.' Useful but rigid — they couldn't learn or adapt on their own.", 
+    color: "#9ca3af", 
+    icon: "⚙️",
+    position: "left"
+  },
+  { 
+    year: "1990s", 
+    title: "Machine Learning Arrives", 
+    desc: "Instead of hand-coding rules, we let computers learn from data. IBM's Deep Blue beats chess champion Kasparov. The internet starts creating massive data sets.", 
+    color: "#a78bfa", 
+    icon: "🧠",
+    position: "right"
+  },
+  { 
+    year: "2000s", 
+    title: "Big Data & Smarter Algorithms", 
+    desc: "Google, Amazon, and Netflix use AI to recommend, search, and personalize. Hotels start using AI for dynamic room pricing and demand forecasting.", 
+    color: "#60a5fa", 
+    icon: "📊",
+    position: "left"
+  },
+  { 
+    year: "2010s", 
+    title: "Deep Learning & Voice Assistants", 
+    desc: "AI learns to see (image recognition), hear (Siri, Alexa), and translate languages. Marriott pilots chatbots and smart room assistants.", 
+    color: "#34d399", 
+    icon: "🎤",
+    position: "right"
+  },
+  { 
+    year: "2020–Now", 
+    title: "Generative AI Explosion", 
+    desc: "ChatGPT, DALL·E, Copilot — AI that creates content, writes, and reasons. This is the era we're in. It's not science fiction anymore — it's a daily tool.", 
+    color: "#b8860b", 
+    icon: "⚡",
+    position: "center"
+  }
+];
+
+let currentStep = -1;
+const totalSteps = timelineData.length;
+
+function startJourney() {
+  document.getElementById('startBtn').classList.add('hidden');
+  document.getElementById('app-shell').scrollTo({ top: document.getElementById('roadContainer').offsetTop - 100, behavior: 'smooth' });
+  setTimeout(() => {
+    revealNextStep();
+  }, 800);
+}
+
+function revealNextStep() {
+  if (currentStep >= totalSteps - 1) {
+    showFinalDestination();
+    return;
+  }
+
+  currentStep++;
+  updateProgress();
+
+  const container = document.getElementById('roadContainer');
+  const stepData = timelineData[currentStep];
+  
+  // Create connecting road if not first step
+  if (currentStep > 0) {
+    const prevCheckpoint = container.querySelector(`.checkpoint-${currentStep - 1}`);
+    const roadConnector = document.createElement('div');
+    roadConnector.className = 'connecting-road';
+    roadConnector.style.top = `${prevCheckpoint.offsetTop + prevCheckpoint.offsetHeight - 40}px`;
+    container.appendChild(roadConnector);
+    
+    setTimeout(() => {
+      roadConnector.classList.add('visible');
+    }, 100);
+  }
+
+  // Create checkpoint
+  setTimeout(() => {
+    const checkpoint = document.createElement('div');
+    checkpoint.className = `road-segment road-checkpoint checkpoint-${currentStep}`;
+    checkpoint.style.background = `linear-gradient(135deg, ${stepData.color}15, ${stepData.color}25)`;
+    checkpoint.style.borderColor = stepData.color;
+    
+    checkpoint.innerHTML = `
+      <div class="checkpoint-marker" style="background: linear-gradient(135deg, ${stepData.color}, ${stepData.color}dd);">
+        <span>${stepData.icon}</span>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold mb-4" style="color: ${stepData.color};">${stepData.year}</div>
+        <h3 class="font-['DM_Serif_Display'] text-5xl mb-6" style="color:#000000;">${stepData.title}</h3>
+        <p class="text-2xl leading-relaxed" style="color:#000000;">${stepData.desc}</p>
+      </div>
+    `;
+    
+    if (currentStep < totalSteps - 1) {
+      checkpoint.innerHTML += `
+        <button onclick="revealNextStep()" class="mt-8 px-8 py-4 text-2xl font-bold rounded-full" style="background: ${stepData.color}; color: white; border: none; cursor: pointer; box-shadow: 0 8px 20px ${stepData.color}40;">
+          Continue Journey →
+        </button>
+      `;
+    } else {
+      // Last checkpoint - show button to final destination
+      checkpoint.innerHTML += `
+        <button onclick="revealNextStep()" class="mt-8 px-8 py-4 text-2xl font-bold rounded-full" style="background: ${stepData.color}; color: white; border: none; cursor: pointer; box-shadow: 0 8px 20px ${stepData.color}40;">
+          AI Today →
+        </button>
+      `;
+    }
+    
+    container.appendChild(checkpoint);
+    
+    setTimeout(() => {
+      checkpoint.classList.add('visible');
+      
+      // Auto-scroll to new checkpoint
+      setTimeout(() => {
+        checkpoint.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 400);
+    }, 100);
+    
+  }, currentStep > 0 ? 600 : 100);
+}
+
+function updateProgress() {
+  document.getElementById('progressText').textContent = `Journey: ${currentStep + 1}/${totalSteps}`;
+}
+
+function showFinalDestination() {
+  const container = document.getElementById('roadContainer');
+  
+  // Add final connecting road
+  const lastCheckpoint = container.querySelector(`.checkpoint-${currentStep}`);
+  const finalRoad = document.createElement('div');
+  finalRoad.className = 'connecting-road';
+  finalRoad.style.top = `${lastCheckpoint.offsetTop + lastCheckpoint.offsetHeight - 40}px`;
+  finalRoad.style.background = 'linear-gradient(180deg, #b8860b 0%, #d4af37 50%, #FFD700 100%)';
+  finalRoad.style.width = '20px';
+  container.appendChild(finalRoad);
+  
+  setTimeout(() => {
+    finalRoad.classList.add('visible');
+  }, 100);
+
+  setTimeout(() => {
+    const destination = document.createElement('div');
+    destination.className = 'road-segment final-destination';
+    destination.innerHTML = `
+      <div class="text-8xl mb-8">🎯</div>
+      <div class="destination-badge mb-8">YOU'VE ARRIVED!</div>
+      <h2 class="font-['DM_Serif_Display'] text-7xl mb-8" style="color:#000000;">Welcome to the AI Era</h2>
+      <p class="text-3xl leading-relaxed max-w-4xl mx-auto mb-12" style="color:#000000;">
+        From Turing's dream to today's generative AI, you've traveled through 70+ years of innovation. 
+        Now AI is transforming our daily lives.
+      </p>
+      
+      <!-- Real Life AI Areas -->
+      <h3 class="font-['DM_Serif_Display'] text-5xl mb-8" style="color:#b8860b;">AI in Our Daily Lives</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8 max-w-6xl mx-auto mb-16">
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🏥</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Healthcare</h4>
+          <p class="text-lg">Diagnosis, drug discovery, patient care</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🚗</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Transportation</h4>
+          <p class="text-lg">Self-driving cars, traffic optimization</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🎓</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Education</h4>
+          <p class="text-lg">Personalized learning, tutoring systems</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">💳</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Finance</h4>
+          <p class="text-lg">Fraud detection, trading algorithms</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🛒</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Retail</h4>
+          <p class="text-lg">Product recommendations, inventory</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🎬</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Entertainment</h4>
+          <p class="text-lg">Content suggestions, creation tools</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🏭</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Manufacturing</h4>
+          <p class="text-lg">Quality control, predictive maintenance</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🌾</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Agriculture</h4>
+          <p class="text-lg">Crop monitoring, yield prediction</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🏨</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Hospitality</h4>
+          <p class="text-lg">Guest services, personalization, operations</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🔒</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Security</h4>
+          <p class="text-lg">Threat detection, surveillance, cybersecurity</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">⚖️</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Legal</h4>
+          <p class="text-lg">Contract analysis, research, compliance</p>
+        </div>
+        <div class="p-6 rounded-3xl" style="background: rgba(184,134,11,0.08); border: 2px solid #b8860b;">
+          <div class="text-4xl mb-3">🌍</div>
+          <h4 class="text-2xl font-bold mb-2" style="color:#000000;">Environment</h4>
+          <p class="text-lg">Climate modeling, energy optimization</p>
+        </div>
+      </div>
+      
+      <button onclick="location.reload()" class="mt-8 px-12 py-6 text-3xl font-bold rounded-full" style="background: linear-gradient(135deg, #b8860b, #d4af37); color: white; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(184,134,11,0.4);">
+        Restart Journey ↻
+      </button>
+      
+      <!-- Marriott Use Cases Section -->
+      <div class="mt-20 pt-16 border-t-4" style="border-color: #b8860b;">
+        <h3 class="font-['DM_Serif_Display'] text-6xl mb-4" style="color:#000000;">AI Problem-Solving at Marriott</h3>
+        <p class="text-3xl opacity-80 mb-4" style="color:#000000;">Real challenges, real solutions powered by AI</p>
+        <p class="text-2xl opacity-70 mb-12" style="color:#000000;">Click any card to see how AI solves these problems with interactive demos</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="useCaseGrid"></div>
+      </div>
+    `;
+    
+    container.appendChild(destination);
+    
+    setTimeout(() => {
+      destination.classList.add('visible');
+      destination.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Render use cases after destination appears
+      setTimeout(renderUseCases, 500);
+    }, 100);
+    
+  }, 800);
+}
+
+// Initialize
+updateProgress();
+
+// Marriott Use Cases
+const useCases = [
+  { icon: "🤖", title: "Guest Chatbot Concierge", dept: "Guest Services", desc: "<p class='mb-3'>Imagine a guest messaging at 11pm: <em>\"Is the pool open tomorrow morning?\"</em></p><p class='mb-3'>An AI chatbot — trained on your property's info — instantly responds with accurate hours, towel policy, and even suggests the spa.</p><p><strong style='color:#b8860b;'>The result:</strong> Happier guests, fewer late-night calls to the front desk, and your team focuses on complex requests that need a human touch.</p>", simulation: "chatbot" },
+  { icon: "💰", title: "Dynamic Revenue Pricing", dept: "Revenue Management", desc: "<p class='mb-3'>AI analyzes thousands of signals — local events, competitor rates, historical demand, weather, flight data — and adjusts room rates in real time.</p><p class='mb-3'>Instead of a revenue manager manually checking 15 spreadsheets, AI does it in seconds and recommends the optimal price.</p><p><strong style='color:#b8860b;'>The result:</strong> Higher RevPAR, fewer empty rooms on slow nights, and smarter pricing during peak demand.</p>", simulation: "pricing" },
+  { icon: "❤️", title: "Personalized Guest Experience", dept: "Loyalty & Marketing", desc: "<p class='mb-3'>A Bonvoy member always books ocean-view rooms, orders room service breakfast, and visits the gym. AI spots these patterns.</p><p class='mb-3'>Next visit? The app proactively suggests an ocean-view upgrade, shows breakfast menus, and shares gym hours — before the guest even asks.</p><p><strong style='color:#b8860b;'>The result:</strong> Guests feel genuinely known. Loyalty deepens. Repeat bookings increase.</p>", simulation: "personalized" },
+  { icon: "📝", title: "Review Sentiment Analysis", dept: "Operations & Quality", desc: "<p class='mb-3'>AI reads thousands of guest reviews across TripAdvisor, Google, and Bonvoy — in any language — and spots trends instantly.</p><p class='mb-3'>\"Guests at this property mention <em>slow check-in</em> 3x more than last quarter.\" That's actionable insight delivered in seconds, not weeks.</p><p><strong style='color:#b8860b;'>The result:</strong> Faster issue resolution, data-backed improvements, and rising guest satisfaction scores.</p>", simulation: "sentiment" },
+  { icon: "🔧", title: "Predictive Maintenance", dept: "Engineering", desc: "<p class='mb-3'>Sensors on HVAC systems, elevators, and plumbing feed data to AI. It learns normal patterns and flags anomalies <em>before</em> something breaks.</p><p class='mb-3'>\"HVAC unit 3B is running 12% hotter than usual — schedule maintenance this week.\"</p><p><strong style='color:#b8860b;'>The result:</strong> Fewer emergency repairs, lower costs, zero guest complaints about broken AC at 2am.</p>", simulation: "maintenance" },
+  { icon: "✉️", title: "Gen AI for Marketing Content", dept: "Marketing & Communications", desc: "<p class='mb-3'>Need 20 versions of a promotional email for different audiences? Gen AI drafts them in minutes — adjusting tone for business travelers vs. families vs. loyalty members.</p><p class='mb-3'>It can also generate social media captions, translate campaigns into multiple languages, and A/B test subject lines.</p><p><strong style='color:#b8860b;'>The result:</strong> Faster campaign launches, consistent brand voice, and your creative team focuses on strategy instead of repetitive writing.</p>", simulation: "marketing" }
+];
+
+function renderUseCases() {
+  const grid = document.getElementById('useCaseGrid');
+  
+  // Clear any existing cards to prevent duplicates
+  grid.innerHTML = '';
+  
+  useCases.forEach((uc, i) => {
+    const card = document.createElement('div');
+    card.className = 'road-segment p-10 rounded-3xl cursor-pointer transition-all duration-300 hover:scale-105';
+    card.style.background = 'rgba(184,134,11,0.1)';
+    card.style.border = '3px solid #b8860b';
+    card.onclick = () => openModal(uc);
+    card.innerHTML = `
+      <div class="text-5xl mb-4">${uc.icon}</div>
+      <h4 class="font-['DM_Serif_Display'] text-3xl mb-2" style="color:#000000;">${uc.title}</h4>
+      <span class="inline-block text-xl px-3 py-1 rounded-full mb-3" style="background:rgba(184,134,11,0.25); color:#8b6914;">${uc.dept}</span>
+      <p class="text-xl" style="color:#000000;">Click to see interactive demo →</p>
+    `;
+    grid.appendChild(card);
+    setTimeout(() => card.classList.add('visible'), i * 100);
+  });
+}
+
+function openModal(uc) {
+  console.log('Opening modal for:', uc.title);
+  const modal = document.getElementById('modal');
+  console.log('Modal element:', modal);
+  document.getElementById('modalIcon').textContent = uc.icon;
+  document.getElementById('modalTitle').textContent = uc.title;
+  const simulation = renderSimulation(uc.simulation);
+  document.getElementById('modalBody').innerHTML = uc.desc + '<div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #b8860b;">' + simulation + '</div>';
+  modal.style.display = 'flex';
+  console.log('Modal should be visible now');
+  
+  if(uc.simulation === 'chatbot') initChatbot();
+  else if(uc.simulation === 'pricing') initPricing();
+  else if(uc.simulation === 'sentiment') initSentiment();
+  else if(uc.simulation === 'maintenance') initMaintenance();
+  else if(uc.simulation === 'marketing') initMarketing();
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+}
+
+// Close modal on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('modal');
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+});
+
+function renderSimulation(type) {
+  if(type === 'chatbot') {
+    return `
+      <div class="bg-blue-50 p-6 rounded-lg">
+        <p class="text-2xl font-semibold mb-4" style="color:#b8860b;">💬 LIVE CHATBOT DEMO</p>
+        <div id="chatMessages" class="space-y-3 mb-4 h-64 overflow-y-auto text-xl">
+          <div class="text-gray-500 text-center pt-4">Guest messages appear here...</div>
+        </div>
+        <input type="text" id="chatInput" placeholder="Ask something..." class="w-full px-4 py-3 text-xl border rounded mb-3" />
+        <button onclick="sendChatMessage()" class="w-full px-4 py-3 bg-blue-600 text-white text-xl rounded hover:bg-blue-700">Send</button>
+      </div>
+    `;
+  } else if(type === 'pricing') {
+    return `
+      <div class="bg-green-50 p-6 rounded-lg">
+        <p class="text-2xl font-semibold mb-4" style="color:#b8860b;">💰 DYNAMIC PRICING SIMULATOR</p>
+        <div class="space-y-3 text-xl">
+          <div class="flex justify-between p-4 bg-white rounded border">
+            <span>Standard Room</span>
+            <span id="standardPrice" class="font-semibold">$189</span>
+          </div>
+          <div class="flex justify-between p-4 bg-white rounded border">
+            <span>Suite (High Demand)</span>
+            <span id="suitePrice" class="font-semibold">$349</span>
+          </div>
+          <div class="flex justify-between p-4 bg-white rounded border">
+            <span>Occupancy Rate</span>
+            <span id="occupancy" class="font-semibold">87%</span>
+          </div>
+          <button onclick="simulatePricingChange()" class="w-full px-4 py-3 bg-green-600 text-white text-xl rounded hover:bg-green-700 mt-3">Simulate Market Change</button>
+        </div>
+      </div>
+    `;
+  } else if(type === 'personalized') {
+    return `
+      <div class="bg-purple-50 p-6 rounded-lg">
+        <p class="text-2xl font-semibold mb-4" style="color:#b8860b;">❤️ PERSONALIZATION ENGINE</p>
+        <div class="space-y-3 text-xl">
+          <div class="p-4 bg-white rounded border"><strong>Guest Profile:</strong> Bonvoy Elite, Ocean-view preference</div>
+          <div id="personalizedOffers" class="space-y-2">
+            <div class="p-4 bg-yellow-100 rounded">✓ Ocean-view upgrade available</div>
+            <div class="p-4 bg-yellow-100 rounded">✓ Early gym access at 6am</div>
+            <div class="p-4 bg-yellow-100 rounded">✓ Complimentary breakfast</div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if(type === 'sentiment') {
+    return `
+      <div class="bg-indigo-50 p-6 rounded-lg">
+        <p class="text-2xl font-semibold mb-4" style="color:#b8860b;">📊 SENTIMENT ANALYSIS DEMO</p>
+        <div class="space-y-4 text-xl">
+          <div class="flex items-center gap-3">
+            <span class="w-40">Check-in Speed:</span>
+            <div class="flex-1 bg-gray-300 rounded h-4">
+              <div class="bg-red-500 h-4 rounded" style="width:78%;"></div>
+            </div>
+            <span class="font-semibold w-32">78% concern</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="w-40">Cleanliness:</span>
+            <div class="flex-1 bg-gray-300 rounded h-4">
+              <div class="bg-green-500 h-4 rounded" style="width:94%;"></div>
+            </div>
+            <span class="font-semibold w-32">94% positive</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="w-40">Staff Friendliness:</span>
+            <div class="flex-1 bg-gray-300 rounded h-4">
+              <div class="bg-green-500 h-4 rounded" style="width:89%;"></div>
+            </div>
+            <span class="font-semibold w-32">89% positive</span>
+          </div>
+          <button onclick="updateSentiment()" class="w-full px-4 py-3 bg-indigo-600 text-white text-xl rounded hover:bg-indigo-700 mt-3">Refresh Data</button>
+        </div>
+      </div>
+    `;
+  } else if(type === 'maintenance') {
+    return `
+      <div class="bg-orange-50 p-6 rounded-lg">
+        <p class="text-2xl font-semibold mb-4" style="color:#b8860b;">🔧 PREDICTIVE ALERTS</p>
+        <div class="space-y-3 text-xl">
+          <div class="p-4 bg-white rounded border flex justify-between items-center">
+            <span>HVAC Unit 3B</span>
+            <span class="px-3 py-2 bg-red-200 text-red-800 rounded text-xl font-semibold">⚠️ ALERT</span>
+          </div>
+          <div id="maintenanceDetail" class="p-4 bg-red-100 rounded text-xl">
+            <p>Temperature anomaly detected: 8% above normal</p>
+            <p class="text-red-700 font-semibold mt-1">📅 Schedule maintenance this week</p>
+          </div>
+          <div class="p-4 bg-green-100 rounded">
+            <span class="text-green-700">✓ Plumbing System: Normal</span>
+          </div>
+          <button onclick="updateMaintenance()" class="w-full px-4 py-3 bg-orange-600 text-white text-xl rounded hover:bg-orange-700 mt-3">Scan Systems</button>
+        </div>
+      </div>
+    `;
+  } else if(type === 'marketing') {
+    return `
+      <div class="bg-pink-50 p-6 rounded-lg">
+        <p class="text-2xl font-semibold mb-4" style="color:#b8860b;">✉️ AI-GENERATED CONTENT</p>
+        <div class="space-y-3 text-xl">
+          <select id="audienceSelect" onchange="generateMarketingContent()" class="w-full px-4 py-3 border rounded text-xl">
+            <option value="business">Business Travelers</option>
+            <option value="family">Families</option>
+            <option value="couples">Couples</option>
+          </select>
+          <div id="generatedContent" class="p-4 bg-white rounded border text-xl leading-relaxed italic">
+            Subject: Exclusive 15% Off Your Next Business Stay
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  return '';
+}
+
+// Simulation functions
+function initChatbot() {
+  const questions = ["Is the pool open tomorrow?", "What time is breakfast?", "Do you offer late checkout?"];
+  setTimeout(() => {
+    const q = questions[Math.floor(Math.random() * questions.length)];
+    const msg = document.createElement('div');
+    msg.className = 'text-left p-3 bg-blue-200 rounded text-xl';
+    msg.innerHTML = '<strong>Guest:</strong> ' + q;
+    document.getElementById('chatMessages').appendChild(msg);
+    
+    setTimeout(() => {
+      const resp = document.createElement('div');
+      resp.className = 'text-right p-3 bg-green-200 rounded text-xl';
+      resp.innerHTML = '<strong>AI Bot:</strong> ' + (q.includes('pool') ? 'Pool is open 6am-10pm daily!' : q.includes('breakfast') ? 'Breakfast is 6:30-10am at the Dining Hall.' : 'Yes, late checkout is available until 2pm.');
+      document.getElementById('chatMessages').appendChild(resp);
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    }, 800);
+  }, 300);
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  if(!input.value.trim()) return;
+  const msg = document.createElement('div');
+  msg.className = 'text-left p-3 bg-blue-200 rounded text-xl';
+  msg.innerHTML = '<strong>Guest:</strong> ' + input.value;
+  document.getElementById('chatMessages').appendChild(msg);
+  
+  setTimeout(() => {
+    const resp = document.createElement('div');
+    resp.className = 'text-right p-3 bg-green-200 rounded text-xl';
+    resp.innerHTML = '<strong>AI Bot:</strong> I\'ll help you with that!';
+    document.getElementById('chatMessages').appendChild(resp);
+    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+  }, 600);
+  input.value = '';
+}
+
+function initPricing() { }
+
+function simulatePricingChange() {
+  document.getElementById('standardPrice').textContent = '$' + (Math.floor(Math.random() * (249 - 129)) + 129);
+  document.getElementById('suitePrice').textContent = '$' + (Math.floor(Math.random() * (499 - 249)) + 249);
+  document.getElementById('occupancy').textContent = (Math.floor(Math.random() * (98 - 70)) + 70) + '%';
+}
+
+function initSentiment() { }
+
+function updateSentiment() {
+  const vals = ['78%', '82%', '75%', '94%', '96%', '92%', '89%', '91%', '87%'];
+  document.querySelectorAll('.indigo-50 [style*="width"]').forEach((el, i) => {
+    el.style.width = vals[Math.floor(Math.random() * 3) + (i * 3)];
+  });
+}
+
+function initMaintenance() { }
+
+function updateMaintenance() {
+  const alerts = [
+    { issue: 'Temperature anomaly detected: 8% above normal', severity: 'red' },
+    { issue: 'Response time 12% slower than baseline', severity: 'yellow' },
+    { issue: '✓ All systems normal', severity: 'green' }
+  ];
+  const rand = alerts[Math.floor(Math.random() * alerts.length)];
+  const color = rand.severity === 'red' ? 'text-red-700' : rand.severity === 'yellow' ? 'text-yellow-700' : 'text-green-700';
+  document.getElementById('maintenanceDetail').innerHTML = '<p>' + rand.issue + '</p><p class="' + color + ' font-semibold mt-1">📅 Action: ' + (rand.severity === 'green' ? 'Continue monitoring' : 'Schedule maintenance') + '</p>';
+}
+
+function generateMarketingContent() {
+  const audience = document.getElementById('audienceSelect').value;
+  const content = {
+    business: 'Subject: Exclusive 15% Off Your Next Business Stay\n\nStay productive with high-speed WiFi, 24hr business center, and express check-in.',
+    family: 'Subject: Family Fun Awaits! Book Your Perfect Getaway\n\nKids eat free, complimentary pool access, and nearby attractions waiting!',
+    couples: 'Subject: Romantic Escape: 20% Off Our Premium Suites\n\nRelax with spa services, sunset dining, and champagne welcome.'
+  };
+  document.getElementById('generatedContent').textContent = content[audience];
+}
+
+function initMarketing() { }
+  </script>
+</body>
+</html>
